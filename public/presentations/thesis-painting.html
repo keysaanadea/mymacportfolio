@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thesis — Japanese vs Chinese Painting Classifier</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --rose: #ec4899; --rose-light: #f472b6; --rose-dark: #9d174d;
+  --rose-glow: rgba(236,72,153,.35); --bg: #0a0a0f;
+  --surface: rgba(255,255,255,.045); --border: rgba(255,255,255,.08);
+  --text: #f0f0f5; --muted: rgba(240,240,245,.5); --accent: #f472b6;
+  --cyan: #22d3ee; --blue: #60a5fa; --purple: #a78bfa; --orange: #fb923c;
+  --green: #4ade80; --yellow: #facc15;
+}
+html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+.deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 3.5rem 5.5rem;
+  opacity: 0; transform: translateX(60px);
+  transition: opacity .45s ease, transform .45s ease;
+  pointer-events: none;
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.exit   { opacity: 0; transform: translateX(-60px); }
+.slide::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 20%, rgba(236,72,153,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(236,72,153,.07) 0%, transparent 70%),
+    var(--bg);
+}
+.slide::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.nav {
+  position: fixed; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 1rem; z-index: 100;
+  background: rgba(255,255,255,.06); backdrop-filter: blur(20px);
+  border: 1px solid var(--border); border-radius: 50px; padding: .55rem 1.3rem;
+}
+.nav button { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: .25rem .6rem; border-radius: 50px; transition: background .2s; display: flex; align-items: center; }
+.nav button:hover { background: rgba(236,72,153,.25); }
+.nav .counter { font-size: .8rem; color: var(--muted); min-width: 48px; text-align: center; }
+.nav .dots { display: flex; gap: .4rem; }
+.nav .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.22); cursor: pointer; transition: all .2s; }
+.nav .dot.active { background: var(--rose); width: 18px; border-radius: 3px; }
+.progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--rose-dark), var(--rose-light)); transition: width .4s ease; z-index: 200; }
+.key-hint { position: fixed; top: 1.4rem; right: 2rem; font-size: .7rem; color: rgba(255,255,255,.18); letter-spacing: .03em; }
+.badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(236,72,153,.15); border: 1px solid rgba(236,72,153,.35);
+  color: #f9a8d4; font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  padding: .28rem .85rem; border-radius: 50px; text-transform: uppercase; margin-bottom: 1rem;
+}
+.pulse-dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; animation: pulse 1.6s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+h1 { font-size: 3.8rem; font-weight: 800; line-height: 1.1; }
+h2 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; }
+h3 { font-size: 1.4rem; font-weight: 600; }
+.gradient-text { background: linear-gradient(135deg, #fff 20%, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.divider { width: 56px; height: 3px; background: linear-gradient(90deg, var(--rose), transparent); border-radius: 2px; margin: 1.2rem auto; }
+.lead { font-size: 1.1rem; color: var(--muted); line-height: 1.7; max-width: 620px; text-align: center; }
+.lead-left { font-size: 1rem; color: var(--muted); line-height: 1.7; }
+.tag { display: flex; align-items: center; gap: .4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 50px; padding: .35rem .9rem; font-size: .77rem; color: var(--muted); }
+.tag svg { color: var(--accent); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.3rem; backdrop-filter: blur(10px); transition: border-color .25s, transform .25s; }
+.card:hover { border-color: rgba(236,72,153,.4); transform: translateY(-2px); }
+.card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: .7rem; }
+.card h4 { font-size: .92rem; font-weight: 700; margin-bottom: .3rem; }
+.card p { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; width: 100%; margin-top: 1rem; align-items: start; }
+.stats { display: flex; gap: 2.5rem; margin-top: 1.5rem; }
+.stat .num { font-size: 2.6rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.stat .lbl { font-size: .72rem; color: var(--muted); margin-top: .25rem; }
+.check-list { display: flex; flex-direction: column; gap: .38rem; margin-top: .6rem; }
+.check-item { display: flex; align-items: flex-start; gap: .55rem; font-size: .82rem; color: var(--muted); line-height: 1.5; }
+.check-item svg.ok { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+.check-item svg.info { color: var(--cyan); flex-shrink: 0; margin-top: 2px; }
+#s1 { gap: .6rem; }
+.logo-ring {
+  width: 92px; height: 92px; border-radius: 22px;
+  background: linear-gradient(135deg, var(--rose-dark), var(--rose-light));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 55px var(--rose-glow); margin-bottom: 1rem;
+  animation: float 3.5s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+#s1 h1 { text-align: center; }
+#s1 .subtitle { font-size: 1.15rem; color: var(--muted); text-align: center; margin-top: .4rem; }
+.thesis-badge {
+  display: flex; align-items: center; gap: .5rem;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 50px; padding: .35rem 1rem; font-size: .75rem; color: var(--muted);
+  margin-top: .5rem;
+}
+.contrib-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.2rem; display: flex; align-items: flex-start; gap: .9rem; }
+.contrib-card .ci { width: 36px; height: 36px; border-radius: 10px; background: rgba(236,72,153,.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.contrib-card .ct h4 { font-size: .88rem; font-weight: 700; margin-bottom: .25rem; }
+.contrib-card .ct p { font-size: .75rem; color: var(--muted); line-height: 1.45; }
+.pipeline-flow { width: 100%; margin-top: .8rem; }
+.pipe-step { display: flex; align-items: stretch; gap: .6rem; margin-bottom: .5rem; }
+.pipe-node { border-radius: 10px; padding: .7rem 1.1rem; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); flex: 1; }
+.pipe-node strong { display: block; font-size: .82rem; font-weight: 800; line-height: 1.2; color: rgba(255,255,255,.88); margin-bottom: .1rem; }
+.pipe-node span { display: block; font-size: .68rem; color: var(--muted); line-height: 1.35; }
+.pipe-node .nid { display: inline-block; font-size: .55rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; border-radius: 999px; padding: .09rem .4rem; margin-bottom: .2rem; }
+.pipe-node.inp .nid { background: rgba(236,72,153,.18); color: var(--accent); }
+.pipe-node.proc .nid { background: rgba(99,102,241,.18); color: var(--purple); }
+.pipe-node.out .nid { background: rgba(34,211,238,.16); color: var(--cyan); }
+.pipe-arrow { font-size: .65rem; color: rgba(255,255,255,.2); display: flex; align-items: center; padding: 0 .1rem; flex-shrink: 0; }
+.pipe-down { display: flex; align-items: center; gap: .5rem; padding: .04rem 0; font-size: .55rem; color: rgba(255,255,255,.22); letter-spacing: .06em; text-transform: uppercase; flex-shrink: 0; }
+.pipe-down::before, .pipe-down::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(236,72,153,.15), transparent); }
+.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; width: 100%; margin-top: 1.2rem; }
+.stack-group { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; }
+.sg-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; }
+.sg-title { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--accent); }
+.tech-pill { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 5px; padding: .22rem .55rem; font-size: .71rem; margin: .18rem; }
+.tech-pill .dp { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.result-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; width: 100%; margin-top: 1.2rem; }
+.result-card { border-radius: 14px; padding: 1.4rem 1rem; text-align: center; }
+.result-card .rnum { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: .3rem; }
+.result-card .rlbl { font-size: .78rem; color: var(--muted); line-height: 1.4; }
+.result-card.rose { background: rgba(236,72,153,.08); border: 1px solid rgba(236,72,153,.22); }
+.result-card.rose .rnum { color: var(--rose-light); }
+.result-card.purple { background: rgba(167,139,250,.07); border: 1px solid rgba(167,139,250,.2); }
+.result-card.purple .rnum { color: var(--purple); }
+.result-card.cyan { background: rgba(34,211,238,.07); border: 1px solid rgba(34,211,238,.2); }
+.result-card.cyan .rnum { color: var(--cyan); }
+.result-card.green { background: rgba(74,222,128,.07); border: 1px solid rgba(74,222,128,.2); }
+.result-card.green .rnum { color: var(--green); }
+.impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; margin-top: 1.2rem; }
+.impact-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.4rem; }
+.impact-card h4 { font-size: .95rem; font-weight: 700; margin-bottom: .85rem; display: flex; align-items: center; gap: .5rem; }
+.impact-card h4 svg { color: var(--accent); }
+#s12 { gap: .8rem; }
+.big-logo { width: 110px; height: 110px; border-radius: 28px; background: linear-gradient(135deg, var(--rose-dark), var(--rose-light)); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 70px rgba(236,72,153,.45); animation: float 3.5s ease-in-out infinite; }
+#s12 h1, #s12 .tagline { text-align: center; }
+#s12 .tagline { font-size: 1.25rem; color: var(--muted); }
+#s12 .feat-badges { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-top: .8rem; }
+.fb { display: flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 50px; padding: .35rem .9rem; font-size: .77rem; color: var(--muted); }
+.fb svg { color: var(--accent); }
+#s12 .credit { font-size: .72rem; color: rgba(255,255,255,.17); margin-top: 1.2rem; }
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="key-hint">&#8592; &#8594; Arrow keys</div>
+<div class="deck" id="deck">
+
+<section class="slide active" id="s1">
+  <div class="logo-ring"><i data-lucide="image" style="width:46px;height:46px;color:white;stroke-width:1.7"></i></div>
+  <div class="badge"><span class="pulse-dot"></span>Skripsi · Sarjana Informatika</div>
+  <h1 class="gradient-text">Painting Classifier</h1>
+  <p class="subtitle">Klasifikasi Lukisan Tradisional Jepang vs Tiongkok</p>
+  <div class="divider"></div>
+  <p class="lead">Pipeline klasifikasi berbasis patch dengan hybrid voting ResNet50 + SVM untuk membedakan gaya lukisan tradisional Jepang (Ukiyo-e &amp; Sumi-e) dari lukisan Tiongkok — dilengkapi explainability level patch.</p>
+  <div class="thesis-badge"><i data-lucide="graduation-cap" style="width:13px;height:13px;color:#f9a8d4"></i> Tugas Akhir Skripsi &mdash; Program Studi Informatika</div>
+  <div style="margin-top:1.5rem;display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center">
+    <span class="tag"><i data-lucide="cpu" style="width:13px;height:13px"></i> ResNet50 + SVM</span>
+    <span class="tag"><i data-lucide="grid-3x3" style="width:13px;height:13px"></i> Patch-based Pipeline</span>
+    <span class="tag"><i data-lucide="eye" style="width:13px;height:13px"></i> XAI Explainability</span>
+    <span class="tag"><i data-lucide="scatter-chart" style="width:13px;height:13px"></i> UMAP &middot; PCA</span>
+    <span class="tag"><i data-lucide="layout-dashboard" style="width:13px;height:13px"></i> Streamlit Demo</span>
+  </div>
+</section>
+
+<section class="slide" id="s2">
+  <div class="badge">Overview</div>
+  <h2 class="gradient-text">Project Overview</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Penelitian ini membangun <strong style="color:white">pipeline klasifikasi berbasis patch</strong> untuk membedakan lukisan tradisional Jepang (Ukiyo-e dan Sumi-e) dari lukisan Tiongkok. Tantangan utama terletak pada perbedaan gaya yang sangat halus &mdash; sapuan kuas, motif dekoratif, dan penggunaan ruang kosong.</p>
+      <br>
+      <p class="lead-left">Pendekatan hybrid menggabungkan <strong style="color:white">ResNet50</strong> sebagai feature extractor, <strong style="color:white">SVM</strong> sebagai patch scorer, dan <strong style="color:white">hybrid centroid voting</strong> sebagai mekanisme keputusan akhir yang dapat dijelaskan.</p>
+      <div class="stats">
+        <div class="stat"><div class="num">2</div><div class="lbl">Kelas Lukisan</div></div>
+        <div class="stat"><div class="num">16</div><div class="lbl">Patch per Gambar</div></div>
+        <div class="stat"><div class="num">XAI</div><div class="lbl">Explainability</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card"><div class="card-icon" style="background:rgba(236,72,153,.12)"><i data-lucide="grid-3x3" style="width:18px;height:18px;color:var(--accent)"></i></div><h4>Patch-Based Approach</h4><p>Gambar dibagi ke dalam 16 patch untuk klasifikasi granular berbasis lokasi &mdash; menangkap karakteristik lokal yang sering terlewat oleh whole-image classification.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(99,102,241,.12)"><i data-lucide="cpu" style="width:18px;height:18px;color:var(--purple)"></i></div><h4>Hybrid ResNet50 + SVM</h4><p>ResNet50 (ImageNet) mengekstrak deep features per patch; SVM dengan kernel RBF menilai probabilitas per patch; centroid voting menentukan prediksi akhir.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(34,211,238,.12)"><i data-lucide="eye" style="width:18px;height:18px;color:var(--cyan)"></i></div><h4>Explainability (XAI)</h4><p>Analisis level patch mengungkap region gambar mana yang mendorong prediksi &mdash; memvisualisasikan sapuan kuas dan motif dekoratif yang membedakan kedua gaya.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s3">
+  <div class="badge">Research Motivation</div>
+  <h2 class="gradient-text">Mengapa Penelitian Ini Penting?</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Membedakan lukisan tradisional Jepang dan Tiongkok secara visual adalah tantangan bahkan bagi <strong style="color:white">ahli seni</strong> &mdash; kedua tradisi memiliki pengaruh timbal balik yang kuat selama berabad-abad. Otomatisasi klasifikasi ini memiliki implikasi nyata di beberapa domain.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Museum &amp; Galeri</strong> &mdash; otomatisasi kurasi dan kategorisasi koleksi seni</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Autentikasi Seni</strong> &mdash; pendukung keputusan berbasis fitur visual objektif</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Preservasi Digital</strong> &mdash; indexing dan retrieval karya seni dalam skala besar</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Penelitian Komparatif</strong> &mdash; analisis kuantitatif karakteristik visual lintas budaya</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div style="background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.2);border-radius:14px;padding:1.3rem">
+        <div style="font-size:.65rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.7rem">Karakteristik Pembeda</div>
+        <div class="check-list" style="margin-top:0">
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Sapuan kuas (brushstroke texture &amp; direction)</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Motif dekoratif (ma / ma-ai vs yijing)</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Penggunaan ruang kosong (negative space)</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Palet warna dan saturasi</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Komposisi dan perspektif</div>
+        </div>
+      </div>
+      <div style="background:rgba(99,102,241,.05);border:1px solid rgba(99,102,241,.15);border-radius:12px;padding:1rem">
+        <p style="font-size:.78rem;color:var(--muted);line-height:1.55"><strong style="color:white">Pendekatan Patch:</strong> Karena karakteristik pembeda ini bersifat <em>lokal</em> (terlihat di region spesifik gambar, bukan keseluruhan), klasifikasi berbasis patch memberikan granularitas analisis yang lebih tepat.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s4">
+  <div class="badge">Pipeline</div>
+  <h2 class="gradient-text">Pipeline Klasifikasi</h2>
+  <div class="divider"></div>
+  <p class="lead-left" style="text-align:center;margin-bottom:.8rem">Gambar diproses melalui 6 tahap &mdash; dari ekstraksi patch hingga prediksi akhir dengan hybrid centroid voting yang transparan.</p>
+  <div class="pipeline-flow">
+    <div class="pipe-step">
+      <div class="pipe-node inp"><span class="nid">Input</span><strong>Input Image</strong><span>JPG / PNG &mdash; lukisan tradisional Jepang atau Tiongkok</span></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-node proc"><span class="nid">Step 1</span><strong>Patch Extraction</strong><span>Grid 4x4 &rarr; 16 patch per gambar &mdash; masing-masing diproses secara independen</span></div>
+    </div>
+    <div class="pipe-down">per patch: residual features</div>
+    <div class="pipe-step">
+      <div class="pipe-node proc"><span class="nid">Step 2</span><strong>ResNet50 Feature Extraction</strong><span>Transfer learning ImageNet &mdash; output 2048-dim feature vector per patch</span></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-node proc"><span class="nid">Step 3</span><strong>PCA / UMAP Reduction</strong><span>Dimensionality reduction untuk visualisasi class separability &amp; SVM efficiency</span></div>
+    </div>
+    <div class="pipe-down">scoring &amp; voting</div>
+    <div class="pipe-step">
+      <div class="pipe-node proc"><span class="nid">Step 4</span><strong>SVM Patch Scoring</strong><span>RBF kernel SVM &mdash; probabilitas per patch: P(Jepang) vs P(Tiongkok)</span></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-node out"><span class="nid">Step 5</span><strong>Hybrid Centroid Voting</strong><span>Gabungkan prob SVM + jarak centroid per patch &rarr; prediksi akhir</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s5">
+  <div class="badge">Model Design</div>
+  <h2 class="gradient-text">ResNet50 + SVM Hybrid</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Pilihan <strong style="color:white">ResNet50</strong> sebagai feature extractor didasarkan pada kemampuannya menangkap hierarki fitur visual dari edge sederhana hingga tekstur kompleks &mdash; cocok untuk perbedaan gaya artistik yang halus.</p>
+      <br>
+      <p class="lead-left"><strong style="color:white">SVM dengan kernel RBF</strong> dipilih sebagai classifier karena efektivitasnya di ruang high-dimensional setelah PCA reduction &mdash; dan kemampuannya menghasilkan probabilitas per kelas yang diperlukan untuk voting.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> ResNet50 di-freeze (ImageNet weights) &mdash; hanya layer custom head yang dilatih</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Global Average Pooling menghasilkan 2048-dim feature vector per patch</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> PCA mereduksi dimensi untuk SVM training yang lebih efisien</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> SVM menghasilkan P(Jepang) dan P(Tiongkok) per setiap patch</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div style="background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.18);border-radius:12px;padding:1.1rem">
+        <div style="font-size:.64rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.65rem">Hybrid Voting Mechanism</div>
+        <div style="display:flex;flex-direction:column;gap:.38rem">
+          <div style="display:flex;align-items:flex-start;gap:.5rem;font-size:.76rem;color:var(--muted)"><span style="color:var(--rose-light);font-weight:700;flex-shrink:0">1.</span> SVM menghitung P(Jepang) per patch</div>
+          <div style="display:flex;align-items:flex-start;gap:.5rem;font-size:.76rem;color:var(--muted)"><span style="color:var(--rose-light);font-weight:700;flex-shrink:0">2.</span> Hitung jarak patch ke centroid kelas Jepang &amp; Tiongkok</div>
+          <div style="display:flex;align-items:flex-start;gap:.5rem;font-size:.76rem;color:var(--muted)"><span style="color:var(--rose-light);font-weight:700;flex-shrink:0">3.</span> Gabungkan: score akhir = &alpha;&middot;P(SVM) + &beta;&middot;sim(centroid)</div>
+          <div style="display:flex;align-items:flex-start;gap:.5rem;font-size:.76rem;color:var(--muted)"><span style="color:var(--rose-light);font-weight:700;flex-shrink:0">4.</span> Mayoritas vote dari 16 patch &rarr; label gambar</div>
+          <div style="display:flex;align-items:flex-start;gap:.5rem;font-size:.76rem;color:var(--muted)"><span style="color:var(--rose-light);font-weight:700;flex-shrink:0">5.</span> Patch dengan score tinggi di-highlight sebagai XAI evidence</div>
+        </div>
+      </div>
+      <div style="background:rgba(99,102,241,.05);border:1px solid rgba(99,102,241,.15);border-radius:12px;padding:.9rem">
+        <p style="font-size:.75rem;color:var(--muted);line-height:1.5"><strong style="color:white">Keunggulan hybrid:</strong> Prediksi tidak hanya berdasarkan probabilitas statistik (SVM) tapi juga kedekatan geometris dalam feature space (centroid) &mdash; lebih robust terhadap patch yang ambigu.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s6">
+  <div class="badge">Explainability</div>
+  <h2 class="gradient-text">XAI &mdash; Explainability Berbasis Patch</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Salah satu kontribusi utama penelitian ini adalah <strong style="color:white">interpretabilitas visual</strong> &mdash; model tidak hanya memberikan prediksi, tapi juga menjelaskan <em>mengapa</em> sebuah gambar diklasifikasikan sebagai Jepang atau Tiongkok.</p>
+      <br>
+      <p class="lead-left">Setiap patch mendapat <strong style="color:white">confidence score</strong>. Patch dengan score tertinggi di-overlay pada gambar asli, mengungkap region visual yang paling berpengaruh terhadap keputusan model.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Heatmap overlay menunjukkan patch yang paling &quot;Japanese&quot; atau &quot;Chinese&quot;</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Region sapuan kuas halus cenderung dominan untuk Jepang</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Region motif kompleks dan pewarnaan kuat untuk Tiongkok</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Patch ambigu (score mendekati 0.5) divisualisasikan terpisah</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="contrib-card"><div class="ci"><i data-lucide="grid-3x3" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>Patch Confidence Map</h4><p>Setiap 16 patch divisualisasikan dengan warna sesuai confidence score &mdash; merah untuk Jepang, biru untuk Tiongkok, abu-abu untuk ambigu</p></div></div>
+      <div class="contrib-card"><div class="ci"><i data-lucide="zoom-in" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>Region Highlighting</h4><p>Top-5 patch dengan score tertinggi di-overlay pada gambar asli dengan bounding box berwarna &mdash; menunjukkan secara visual &quot;di mana&quot; model melihat perbedaan</p></div></div>
+      <div class="contrib-card"><div class="ci"><i data-lucide="scatter-chart" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>UMAP Feature Visualization</h4><p>UMAP mereduksi feature vectors ke 2D untuk memvisualisasikan pemisahan kelas dalam ruang fitur &mdash; konfirmasi bahwa kelas memang terpisah secara geometris</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s7">
+  <div class="badge">Tech Stack</div>
+  <h2 class="gradient-text">Technology Stack</h2>
+  <div class="divider"></div>
+  <div class="stack-grid">
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="brain" style="width:16px;height:16px;color:var(--accent)"></i><span class="sg-title">Deep Learning</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp"></span>TensorFlow 2.x</span>
+        <span class="tech-pill"><span class="dp"></span>Keras</span>
+        <span class="tech-pill"><span class="dp"></span>ResNet50</span>
+        <span class="tech-pill"><span class="dp"></span>ImageNet weights</span>
+        <span class="tech-pill"><span class="dp"></span>Global Avg Pool</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="scatter-chart" style="width:16px;height:16px;color:var(--purple)"></i><span class="sg-title" style="color:var(--purple)">ML &amp; Dimensionality</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp" style="background:var(--purple)"></span>Scikit-learn</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--purple)"></span>SVM (RBF)</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--purple)"></span>PCA</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--purple)"></span>UMAP</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="layout-dashboard" style="width:16px;height:16px;color:var(--cyan)"></i><span class="sg-title" style="color:var(--cyan)">Demo &amp; Visualization</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp" style="background:var(--cyan)"></span>Streamlit</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--cyan)"></span>Matplotlib</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--cyan)"></span>NumPy</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--cyan)"></span>Pandas</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--cyan)"></span>OpenCV</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--cyan)"></span>Pillow</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;padding:1.2rem 1.5rem;background:rgba(236,72,153,.05);border:1px solid rgba(236,72,153,.15);border-radius:12px;max-width:680px;text-align:center">
+    <p style="font-size:.82rem;color:var(--muted);line-height:1.6">Stack dipilih untuk menyeimbangkan <strong style="color:white">kapabilitas deep learning</strong> (TF/Keras + ResNet50) dengan <strong style="color:white">explainability</strong> (patch-level SVM + UMAP) dan <strong style="color:white">aksesibilitas demo</strong> (Streamlit).</p>
+  </div>
+</section>
+
+<section class="slide" id="s8">
+  <div class="badge">Dataset</div>
+  <h2 class="gradient-text">Dataset &amp; Pengolahan Data</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Dataset dikompilasi dari berbagai sumber museum dan repositori seni digital, terdiri dari lukisan tradisional Jepang (Ukiyo-e, Sumi-e) dan lukisan tradisional Tiongkok dari berbagai periode dan seniman.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Balancing kelas</strong> &mdash; distribusi seimbang antara Jepang dan Tiongkok</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Resolusi standar</strong> &mdash; semua gambar di-resize ke ukuran seragam sebelum patch extraction</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Augmentasi</strong> &mdash; flipping, color jitter, slight rotation untuk memperkaya training set</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Train/val/test split</strong> stratifikasi per kelas</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Beberapa gambar memiliki watermark &mdash; diperhitungkan dalam patch filtering</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card"><div class="card-icon" style="background:rgba(236,72,153,.12)"><i data-lucide="image" style="width:18px;height:18px;color:var(--accent)"></i></div><h4>Jepang: Ukiyo-e &amp; Sumi-e</h4><p>Ukiyo-e: woodblock prints bergaya dekoratif dengan outline jelas dan warna datar. Sumi-e: lukisan tinta berbasis teknik sapuan kuas ekspresif.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(99,102,241,.12)"><i data-lucide="palette" style="width:18px;height:18px;color:var(--purple)"></i></div><h4>Tiongkok: Traditional Painting</h4><p>Gongbi (detail halus) dan Xieyi (ekspresif, mirip kaligrafi) &mdash; dengan penggunaan warna dan komposisi yang khas berbeda dari estetika Jepang.</p></div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.9rem">
+        <div style="font-size:.64rem;color:rgba(255,255,255,.4);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">Patch Strategy</div>
+        <p style="font-size:.74rem;color:var(--muted);line-height:1.5">Grid 4&times;4 menghasilkan 16 patch per gambar. Patch yang terlalu besar (solid background &gt;80%) difilter sebelum memasuki pipeline.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s9">
+  <div class="badge">Results</div>
+  <h2 class="gradient-text">Hasil &amp; Evaluasi</h2>
+  <div class="divider"></div>
+  <div class="result-grid">
+    <div class="result-card rose"><div class="rnum">2</div><div class="rlbl">Kelas yang diklasifikasikan: Jepang &amp; Tiongkok</div></div>
+    <div class="result-card purple"><div class="rnum">ResNet50</div><div class="rlbl">Feature extractor pilihan (2048-dim output)</div></div>
+    <div class="result-card cyan"><div class="rnum">SVM</div><div class="rlbl">Patch scorer dengan kernel RBF</div></div>
+    <div class="result-card green"><div class="rnum">XAI</div><div class="rlbl">Patch-level explainability visual</div></div>
+  </div>
+  <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;width:100%">
+    <div style="background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.18);border-radius:12px;padding:1.2rem">
+      <div style="font-size:.65rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.7rem">Temuan Utama</div>
+      <div class="check-list" style="margin-top:0">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Patch-based approach lebih akurat dari whole-image classification</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Hybrid voting (SVM + centroid) outperforms pure SVM voting</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> UMAP memkonfirmasi separasi kelas yang jelas di feature space</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> XAI mengidentifikasi region sapuan kuas sebagai fitur paling diskriminatif</div>
+      </div>
+    </div>
+    <div style="background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.15);border-radius:12px;padding:1.2rem">
+      <div style="font-size:.65rem;color:var(--green);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.7rem">Kontribusi Penelitian</div>
+      <div class="check-list" style="margin-top:0">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Framework patch + voting yang dapat direplikasi untuk domain seni lain</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Hybrid centroid voting sebagai alternatif interpretable dari end-to-end CNN</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Visualisasi XAI yang dapat dipahami non-teknikal (curator, peneliti seni)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s10">
+  <div class="badge">UMAP Visualization</div>
+  <h2 class="gradient-text">UMAP &amp; PCA &mdash; Feature Space</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left"><strong style="color:white">UMAP (Uniform Manifold Approximation and Projection)</strong> digunakan untuk memvisualisasikan apakah ResNet50 feature vectors benar-benar memisahkan lukisan Jepang dan Tiongkok dalam ruang dimensi rendah.</p>
+      <br>
+      <p class="lead-left">Jika cluster kedua kelas terpisah dengan jelas di UMAP 2D, ini mengkonfirmasi bahwa <strong style="color:white">fitur yang diekstrak ResNet50 memang membawa informasi diskriminatif</strong> yang dapat dimanfaatkan SVM.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> UMAP dijalankan pada train set feature vectors (post-ResNet50)</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Cluster Jepang dan Tiongkok terbentuk dengan separasi yang jelas</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Outlier dan patch ambigu terlihat di batas antar cluster</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> PCA digunakan sebelum SVM training untuk mengurangi noise dimensi tinggi</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div style="background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.18);border-radius:14px;padding:1.3rem">
+        <div style="font-size:.65rem;color:var(--purple);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.75rem">Interpretasi UMAP</div>
+        <div class="check-list" style="margin-top:0">
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Cluster compact</strong> &rarr; fitur konsisten per kelas</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Inter-cluster gap</strong> &rarr; SVM dapat boundary yang jelas</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Outlier region</strong> &rarr; patch yang membutuhkan centroid voting sebagai tiebreaker</div>
+        </div>
+      </div>
+      <div style="background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.15);border-radius:12px;padding:.9rem">
+        <div style="font-size:.64rem;color:var(--cyan);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">PCA Pre-processing</div>
+        <p style="font-size:.74rem;color:var(--muted);line-height:1.5">PCA mereduksi 2048-dim ResNet50 output ke n komponen yang menjelaskan 95% variance &mdash; mempercepat SVM training signifikan tanpa kehilangan informasi diskriminatif.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s11">
+  <div class="badge">Streamlit Demo</div>
+  <h2 class="gradient-text">Streamlit Demo App</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Untuk memudahkan demonstrasi dan validasi hasil penelitian, dibangun <strong style="color:white">aplikasi demo berbasis Streamlit</strong> yang memungkinkan pengguna mengupload gambar dan mendapatkan prediksi beserta visualisasi XAI-nya secara interaktif.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Upload gambar dari local &mdash; JPG atau PNG</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Tampilkan 16 patch yang diekstrak dengan confidence score masing-masing</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Overlay heatmap pada gambar asli &mdash; region yang paling diskriminatif</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Prediksi akhir dengan confidence dan breakdown voting per patch</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> UMAP plot patch baru diplot di atas feature space training untuk konteks</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="contrib-card"><div class="ci"><i data-lucide="upload" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>Image Upload &amp; Preprocessing</h4><p>Gambar diupload, di-resize, dan dibagi ke 16 patch secara otomatis &mdash; semua divisualisasikan sebelum memasuki pipeline klasifikasi</p></div></div>
+      <div class="contrib-card"><div class="ci"><i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>Patch Score Visualization</h4><p>Bar chart confidence score per patch &mdash; patch merah (Jepang) dan biru (Tiongkok) dengan threshold garis untuk interpretasi mudah</p></div></div>
+      <div class="contrib-card"><div class="ci"><i data-lucide="check-circle" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>Final Prediction Card</h4><p>Prediksi akhir ditampilkan dengan label, confidence keseluruhan, dan penjelasan singkat region gambar yang paling berkontribusi</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s12">
+  <div class="big-logo"><i data-lucide="image" style="width:54px;height:54px;color:white;stroke-width:1.7"></i></div>
+  <div class="badge"><span class="pulse-dot"></span>Skripsi · Sarjana Informatika</div>
+  <h1 class="gradient-text">Painting Classifier</h1>
+  <p class="tagline">Patch · Hybrid Voting · XAI</p>
+  <div class="feat-badges">
+    <div class="fb"><i data-lucide="grid-3x3" style="width:13px;height:13px"></i> Patch-based Pipeline</div>
+    <div class="fb"><i data-lucide="cpu" style="width:13px;height:13px"></i> ResNet50 + SVM</div>
+    <div class="fb"><i data-lucide="eye" style="width:13px;height:13px"></i> XAI Explainability</div>
+    <div class="fb"><i data-lucide="scatter-chart" style="width:13px;height:13px"></i> UMAP Visualization</div>
+    <div class="fb"><i data-lucide="layout-dashboard" style="width:13px;height:13px"></i> Streamlit Demo</div>
+  </div>
+  <p class="credit">TensorFlow &middot; Keras &middot; ResNet50 &middot; SVM &middot; PCA &middot; UMAP &middot; Streamlit</p>
+</section>
+
+</div>
+<nav class="nav">
+  <button id="prevBtn"><i data-lucide="chevron-left" style="width:18px;height:18px"></i></button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter"></span>
+  <button id="nextBtn"><i data-lucide="chevron-right" style="width:18px;height:18px"></i></button>
+</nav>
+<script>
+const slides = document.querySelectorAll('.slide');
+const dots = document.getElementById('dots');
+const counter = document.getElementById('counter');
+const bar = document.getElementById('progressBar');
+let cur = 0;
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => go(i);
+  dots.appendChild(d);
+});
+function go(n) {
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('exit');
+  const prev = cur;
+  setTimeout(() => slides[prev].classList.remove('exit'), 450);
+  cur = n;
+  slides[cur].classList.add('active');
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+  counter.textContent = (cur + 1) + ' / ' + slides.length;
+  bar.style.width = ((cur + 1) / slides.length * 100) + '%';
+}
+function next() { if (cur < slides.length - 1) go(cur + 1); }
+function prev() { if (cur > 0) go(cur - 1); }
+document.getElementById('nextBtn').onclick = next;
+document.getElementById('prevBtn').onclick = prev;
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') next(); if (e.key === 'ArrowLeft') prev(); });
+go(0);
+lucide.createIcons();
+</script>
+</body>
+</html>

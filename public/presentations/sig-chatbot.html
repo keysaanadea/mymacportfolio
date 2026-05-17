@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR AI Chatbot Project – SIG</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --red: #b7131a; --red-light: #d9272e; --red-dark: #8c0e13;
+  --red-glow: rgba(183,19,26,.35); --bg: #0a0a0f;
+  --surface: rgba(255,255,255,.045); --border: rgba(255,255,255,.08);
+  --text: #f0f0f5; --muted: rgba(240,240,245,.5); --accent: #ff6b6b;
+  --green: #4ade80; --blue: #60a5fa; --purple: #a78bfa; --orange: #fb923c;
+}
+html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+.deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 3.5rem 5.5rem;
+  opacity: 0; transform: translateX(60px);
+  transition: opacity .45s ease, transform .45s ease;
+  pointer-events: none;
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.exit   { opacity: 0; transform: translateX(-60px); }
+.slide::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 20%, rgba(183,19,26,.16) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(183,19,26,.10) 0%, transparent 70%),
+    var(--bg);
+}
+.slide::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* NAV */
+.nav {
+  position: fixed; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 1rem; z-index: 100;
+  background: rgba(255,255,255,.06); backdrop-filter: blur(20px);
+  border: 1px solid var(--border); border-radius: 50px; padding: .55rem 1.3rem;
+}
+.nav button {
+  background: none; border: none; color: var(--text); font-size: 1.1rem;
+  cursor: pointer; padding: .25rem .6rem; border-radius: 50px; transition: background .2s;
+  display: flex; align-items: center;
+}
+.nav button:hover { background: rgba(183,19,26,.3); }
+.nav .counter { font-size: .8rem; color: var(--muted); min-width: 48px; text-align: center; }
+.nav .dots { display: flex; gap: .4rem; }
+.nav .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.22); cursor: pointer; transition: all .2s; }
+.nav .dot.active { background: var(--red); width: 18px; border-radius: 3px; }
+.progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--red-dark), var(--accent)); transition: width .4s ease; z-index: 200; }
+.key-hint { position: fixed; top: 1.4rem; right: 2rem; font-size: .7rem; color: rgba(255,255,255,.18); letter-spacing: .03em; }
+
+/* COMMON */
+.badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(183,19,26,.18); border: 1px solid rgba(183,19,26,.38);
+  color: #ff8a8a; font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  padding: .28rem .85rem; border-radius: 50px; text-transform: uppercase; margin-bottom: 1rem;
+}
+.pulse-dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; animation: pulse 1.6s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+h1 { font-size: 3.8rem; font-weight: 800; line-height: 1.1; }
+h2 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; }
+h3 { font-size: 1.4rem; font-weight: 600; }
+.gradient-text { background: linear-gradient(135deg, #fff 20%, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.divider { width: 56px; height: 3px; background: linear-gradient(90deg, var(--red), transparent); border-radius: 2px; margin: 1.2rem auto; }
+.divider-left { margin-left: 0; }
+.lead { font-size: 1.1rem; color: var(--muted); line-height: 1.7; max-width: 620px; text-align: center; }
+.lead-left { font-size: 1rem; color: var(--muted); line-height: 1.7; }
+.icon-wrap { display: flex; align-items: center; justify-content: center; }
+.icon-wrap svg { flex-shrink: 0; }
+.ic { display: inline-flex; align-items: center; justify-content: center; }
+
+/* CARD */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.3rem; backdrop-filter: blur(10px); transition: border-color .25s, transform .25s; }
+.card:hover { border-color: rgba(183,19,26,.45); transform: translateY(-2px); }
+.card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: .7rem; }
+.card h4 { font-size: .92rem; font-weight: 700; margin-bottom: .3rem; }
+.card p { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+
+/* SLIDE 1: HERO */
+#s1 { gap: .6rem; }
+.logo-ring {
+  width: 88px; height: 88px; border-radius: 22px;
+  background: linear-gradient(135deg, var(--red-dark), var(--red-light));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 50px var(--red-glow); margin-bottom: 1rem;
+  animation: float 3.5s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+#s1 h1 { text-align: center; }
+#s1 .subtitle { font-size: 1.15rem; color: var(--muted); text-align: center; margin-top: .4rem; }
+#s1 .tags { display: flex; gap: .7rem; margin-top: 1.8rem; flex-wrap: wrap; justify-content: center; }
+.tag { display: flex; align-items: center; gap: .4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 50px; padding: .35rem .9rem; font-size: .77rem; color: var(--muted); }
+.tag svg { color: var(--accent); }
+
+/* SLIDE 2: PROJECT OVERVIEW */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; width: 100%; margin-top: 1rem; align-items: start; }
+.stats { display: flex; gap: 2.5rem; margin-top: 1.5rem; }
+.stat .num { font-size: 2.6rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.stat .lbl { font-size: .72rem; color: var(--muted); margin-top: .25rem; }
+
+/* SLIDE 3: TWO MODES */
+#s3 .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: 100%; margin-top: 1.2rem; }
+.mode-card { border-radius: 18px; padding: 1.8rem; border: 1px solid var(--border); position: relative; overflow: hidden; }
+.mode-card.chat { background: linear-gradient(135deg, rgba(183,19,26,.12), rgba(183,19,26,.03)); border-color: rgba(183,19,26,.28); }
+.mode-card.call { background: linear-gradient(135deg, rgba(96,165,250,.09), rgba(96,165,250,.02)); border-color: rgba(96,165,250,.2); }
+.mode-card .m-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: .9rem; }
+.mode-card.chat .m-icon { background: rgba(183,19,26,.2); }
+.mode-card.call .m-icon { background: rgba(96,165,250,.15); }
+.mode-card h3 { font-size: 1.3rem; margin-bottom: .6rem; }
+.feature-list { list-style: none; }
+.feature-list li { font-size: .83rem; color: var(--muted); padding: .3rem 0; display: flex; align-items: center; gap: .55rem; }
+.feature-list li svg { color: var(--accent); flex-shrink: 0; }
+
+/* SLIDE 4: FEATURES */
+.feature-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; width: 100%; margin-top: 1.2rem; }
+.feat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; }
+.feat-card .fi { width: 32px; height: 32px; border-radius: 8px; background: rgba(183,19,26,.15); display: flex; align-items: center; justify-content: center; margin-bottom: .55rem; }
+.feat-card h4 { font-size: .88rem; font-weight: 700; margin-bottom: .25rem; }
+.feat-card p { font-size: .73rem; color: var(--muted); line-height: 1.45; }
+
+/* SLIDE 5: ARCHITECTURE FLOW */
+#s5 { padding: 1.6rem 4rem; justify-content: flex-start; padding-top: 2rem; }
+#s5 .badge { margin-bottom: .35rem; }
+#s5 h2 { font-size: 1.75rem; }
+#s5 .divider { margin: .55rem auto; }
+#s5 .flow-wrap { width: 100%; margin-top: .4rem; display: flex; flex-direction: column; align-items: center; gap: 0; }
+#s5 .arch-wrap { width:100%; display:flex; flex-direction:column; gap:.36rem; }
+#s5 .arch-down { display:flex; align-items:center; justify-content:center; gap:.45rem; font-size:.59rem; color:rgba(255,255,255,.3); letter-spacing:.07em; text-transform:uppercase; padding:0; }
+#s5 .arch-down::before, #s5 .arch-down::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent); }
+#s5 .anode { border-radius:10px; padding:.5rem .78rem; border:1px solid rgba(255,255,255,.08); border-left:3px solid rgba(255,255,255,.15); background:rgba(255,255,255,.04); box-shadow:0 2px 10px rgba(0,0,0,.3); }
+#s5 .anode strong { display:block; font-size:.76rem; font-weight:800; line-height:1.2; margin-bottom:.12rem; color:rgba(255,255,255,.88); }
+#s5 .anode span { display:block; font-size:.61rem; color:var(--muted); line-height:1.38; }
+#s5 .anode-id { display:inline-block; font-size:.53rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; border-radius:999px; padding:.1rem .4rem; margin-bottom:.26rem; color:#fff; }
+#s5 .anode.ext   { border-left-color:rgba(245,158,11,.95); }
+#s5 .anode.ext   .anode-id { background:rgba(245,158,11,.22); color:#fbbf24; }
+#s5 .anode.proc  { border-left-color:rgba(96,165,250,.95); }
+#s5 .anode.proc  .anode-id { background:rgba(96,165,250,.18); color:var(--blue); }
+#s5 .anode.hot   { border-left-color:rgba(183,19,26,1); }
+#s5 .anode.hot   .anode-id { background:rgba(183,19,26,.28); color:var(--accent); }
+#s5 .anode.gate  { border-left-color:rgba(167,139,250,.95); }
+#s5 .anode.gate  .anode-id { background:rgba(167,139,250,.18); color:var(--purple); }
+#s5 .anode.store { border-left-color:rgba(74,222,128,.95); }
+#s5 .anode.store .anode-id { background:rgba(74,222,128,.16); color:var(--green); }
+#s5 .arow-h { flex:0 0 auto; display:flex; align-items:center; font-size:.58rem; color:rgba(255,255,255,.32); letter-spacing:.04em; padding:0 .08rem; white-space:nowrap; }
+#s5 .arch-pipe  { display:flex; align-items:stretch; gap:.4rem; width:100%; }
+#s5 .arch-split { display:flex; gap:.48rem; width:100%; align-items:flex-start; }
+#s5 .arch-aside { flex:0 0 162px; display:flex; flex-direction:column; align-items:center; gap:.18rem; }
+#s5 .arch-aside .aside-pill { font-size:.55rem; color:var(--muted); border:1px solid var(--border); border-radius:50px; padding:.11rem .45rem; white-space:nowrap; }
+#s5 .arch-main  { flex:1; display:flex; flex-direction:column; gap:.36rem; min-width:0; }
+#s5 .arch-gate  { display:flex; align-items:center; gap:.38rem; }
+#s5 .arch-mem   { flex:0 0 auto; border:1px solid rgba(255,255,255,.08); border-left:3px solid rgba(167,139,250,.9); background:rgba(255,255,255,.04); border-radius:9px; padding:.4rem .62rem; box-shadow:0 2px 10px rgba(0,0,0,.25); }
+#s5 .arch-mem .mem-label { font-size:.56rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--purple); margin-bottom:.1rem; }
+#s5 .arch-mem span { display:block; font-size:.58rem; color:var(--muted); line-height:1.35; }
+#s5 .arch-mem-conn { font-size:.7rem; color:rgba(167,139,250,.45); flex-shrink:0; padding:0 .08rem; }
+#s5 .arch-lanes  { display:grid; grid-template-columns:1fr 1fr; gap:.42rem; }
+#s5 .arch-lane    { border-radius:10px; padding:.52rem .78rem; border:1px solid rgba(255,255,255,.08); border-left:3px solid; background:rgba(255,255,255,.04); box-shadow:0 2px 10px rgba(0,0,0,.25); }
+#s5 .arch-lane.kw { border-left-color:rgba(183,19,26,.95); }
+#s5 .arch-lane.hc { border-left-color:rgba(96,165,250,.95); }
+#s5 .arch-lane .lane-tag { font-size:.56rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; display:block; margin-bottom:.16rem; }
+#s5 .arch-lane.kw .lane-tag { color:var(--accent); }
+#s5 .arch-lane.hc .lane-tag { color:var(--blue); }
+#s5 .arch-lane strong { display:block; font-size:.74rem; font-weight:800; margin-bottom:.14rem; color:rgba(255,255,255,.85); }
+#s5 .arch-lane ul { padding:0; list-style:none; display:flex; flex-direction:column; gap:.1rem; }
+#s5 .arch-lane ul li { font-size:.59rem; color:var(--muted); line-height:1.35; display:flex; gap:.22rem; }
+#s5 .arch-lane ul li::before { content:'›'; flex-shrink:0; font-size:.63rem; }
+#s5 .arch-lane.kw ul li::before { color:var(--accent); }
+#s5 .arch-lane.hc ul li::before { color:var(--blue); }
+#s5 .arch-lane ul li b { color:rgba(255,255,255,.8); }
+#s5 .arch-stores { display:grid; grid-template-columns:1fr 1fr; gap:.42rem; }
+#s5 .arch-note { padding:.45rem .78rem; border-radius:9px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); font-size:.61rem; color:rgba(255,255,255,.32); line-height:1.45; text-align:center; }
+
+/* SLIDE 6: PER ROUTE */
+.roles { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; margin-top: 1.2rem; }
+.role-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; }
+.role-head { display: flex; align-items: center; gap: .8rem; margin-bottom: .4rem; }
+.role-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.role-card h4 { font-size: .95rem; font-weight: 700; }
+.role-card .sub { font-size: .75rem; color: var(--muted); margin-bottom: .9rem; }
+.access-list { display: flex; flex-direction: column; gap: .35rem; }
+.access-item { display: flex; align-items: center; gap: .55rem; font-size: .8rem; color: var(--muted); }
+.access-item svg.ok { color: var(--green); }
+.access-item svg.no { color: #f87171; }
+
+/* SLIDE 7: PLAYGROUND */
+#s7 { justify-content: flex-start; padding-top: 3rem; }
+
+/* SLIDE 8: TECH STACK */
+.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; width: 100%; margin-top: 1.2rem; }
+.stack-group { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; }
+.sg-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; }
+.sg-head svg { color: var(--accent); }
+.sg-title { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--accent); }
+.tech-pill { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 5px; padding: .22rem .55rem; font-size: .71rem; margin: .18rem; }
+.tech-pill .dp { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* SLIDE 9: EXTERNAL SERVICES */
+.service-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .9rem; width: 100%; margin-top: 1.2rem; }
+.svc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; text-align: center; }
+.svc-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto .6rem; }
+.svc-card .s-name { font-size: .88rem; font-weight: 700; margin-bottom: .3rem; }
+.svc-card .s-role { font-size: .7rem; color: var(--muted); line-height: 1.4; }
+.s-badge { display: inline-block; font-size: .58rem; font-weight: 700; padding: .18rem .5rem; border-radius: 50px; margin-top: .5rem; text-transform: uppercase; letter-spacing: .04em; }
+.s-badge.cloud { background: rgba(183,19,26,.18); color: #ff8a8a; border: 1px solid rgba(183,19,26,.3); }
+.s-badge.self  { background: rgba(74,222,128,.12); color: var(--green); border: 1px solid rgba(74,222,128,.28); }
+
+/* SLIDE 10: ROLE SYSTEM */
+#s10 .note { margin-top: 1rem; padding: .85rem 1.3rem; background: rgba(183,19,26,.07); border: 1px solid rgba(183,19,26,.18); border-radius: 10px; font-size: .78rem; color: var(--muted); text-align: center; display: flex; align-items: center; justify-content: center; gap: .5rem; }
+#s10 .note svg { color: var(--accent); flex-shrink: 0; }
+
+/* SLIDE 11: INFRASTRUCTURE */
+#s11 { padding: 2.8rem 4.5rem; justify-content: flex-start; padding-top: 3rem; }
+.infra-diagram { width: 100%; margin-top: 1rem; display: flex; gap: 1.2rem; align-items: flex-start; }
+.infra-col { display: flex; flex-direction: column; gap: .7rem; }
+.infra-col.main { flex: 1.4; }
+.infra-col.services { flex: 1; }
+.infra-layer { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.2rem; }
+.infra-layer .il-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem; }
+.infra-layer .il-title { font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.infra-layer .il-content { display: flex; flex-wrap: wrap; gap: .5rem; }
+.infra-node { display: flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 7px; padding: .4rem .7rem; font-size: .72rem; font-weight: 600; }
+.infra-node svg { flex-shrink: 0; }
+.infra-node.red { border-color: rgba(183,19,26,.35); background: rgba(183,19,26,.08); }
+.infra-node.red svg { color: var(--accent); }
+.infra-node.blue { border-color: rgba(96,165,250,.3); background: rgba(96,165,250,.07); }
+.infra-node.blue svg { color: var(--blue); }
+.infra-node.green { border-color: rgba(74,222,128,.28); background: rgba(74,222,128,.07); }
+.infra-node.green svg { color: var(--green); }
+.infra-node.purple { border-color: rgba(167,139,250,.28); background: rgba(167,139,250,.07); }
+.infra-node.purple svg { color: var(--purple); }
+.infra-node.orange { border-color: rgba(251,146,60,.28); background: rgba(251,146,60,.07); }
+.infra-node.orange svg { color: var(--orange); }
+.infra-arrow { display: flex; align-items: center; justify-content: center; padding: .1rem 0; }
+.infra-arrow svg { color: rgba(183,19,26,.5); }
+.svc-section-title { font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; padding: 0 .2rem; }
+.ext-svc-row { display: flex; flex-direction: column; gap: .4rem; }
+.ext-svc-item { display: flex; align-items: center; gap: .6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: .5rem .8rem; }
+.ext-svc-item .esv-icon { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ext-svc-item .esv-info .esv-name { font-size: .75rem; font-weight: 700; }
+.ext-svc-item .esv-info .esv-desc { font-size: .63rem; color: var(--muted); }
+.server-specs { background: rgba(183,19,26,.06); border: 1px solid rgba(183,19,26,.2); border-radius: 10px; padding: .8rem 1rem; }
+.spec-row { display: flex; justify-content: space-between; align-items: center; padding: .28rem 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.spec-row:last-child { border-bottom: none; }
+.spec-key { font-size: .72rem; color: var(--muted); }
+.spec-val { font-size: .72rem; font-weight: 600; }
+
+/* SLIDE 12: OUTRO */
+#s12 { gap: .8rem; }
+.big-logo { width: 110px; height: 110px; border-radius: 28px; background: linear-gradient(135deg, var(--red-dark), var(--red-light)); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 70px rgba(183,19,26,.5); animation: float 3.5s ease-in-out infinite; }
+#s12 h1, #s12 .tagline { text-align: center; }
+#s12 .tagline { font-size: 1.25rem; color: var(--muted); }
+#s12 .feat-badges { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-top: .8rem; }
+.fb { display: flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 50px; padding: .35rem .9rem; font-size: .77rem; color: var(--muted); }
+.fb svg { color: var(--accent); }
+#s12 .credit { font-size: .72rem; color: rgba(255,255,255,.17); margin-top: 1.2rem; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="key-hint">← → Arrow keys</div>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 – HERO -->
+<section class="slide active" id="s1">
+  <div class="logo-ring">
+    <i data-lucide="bot" style="width:44px;height:44px;color:white;stroke-width:1.8"></i>
+  </div>
+  <div class="badge"><span class="pulse-dot"></span>Enterprise AI Chatbot</div>
+  <h1 class="gradient-text">HC AI Chatbot</h1>
+  <p style="font-size:1.15rem;color:var(--muted);text-align:center;margin-top:.4rem">AI chatbot project for PT Semen Indonesia Group</p>
+  <div class="divider"></div>
+  <p class="lead">Asisten AI enterprise untuk karyawan PT Semen Indonesia Group — menjawab SOP & kebijakan, menganalisis data HC, dan mendukung evaluasi kebijakan HC dalam satu chat surface.</p>
+  <div class="tags" style="margin-top:1.8rem">
+    <span class="tag"><i data-lucide="building-2" style="width:13px;height:13px"></i> PT Semen Indonesia Group</span>
+    <span class="tag"><i data-lucide="cpu" style="width:13px;height:13px"></i> GPT-4o-mini</span>
+    <span class="tag"><i data-lucide="mic" style="width:13px;height:13px"></i> ElevenLabs TTS</span>
+    <span class="tag"><i data-lucide="bar-chart-2" style="width:13px;height:13px"></i> HC Analytics</span>
+    <span class="tag"><i data-lucide="zap" style="width:13px;height:13px"></i> FastAPI v8.1.0</span>
+  </div>
+</section>
+
+<!-- SLIDE 2 – PROJECT OVERVIEW -->
+<section class="slide" id="s2">
+  <div class="badge">Overview</div>
+  <h2 class="gradient-text">Project Overview</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Project ini adalah <strong style="color:white">Enterprise Knowledge Assistant</strong> yang saya bangun untuk PT Semen Indonesia Group agar karyawan dapat mengakses informasi perusahaan secara instan, baik lewat teks maupun suara, dengan konteks user dan session yang tetap terjaga.</p>
+      <br>
+      <p class="lead-left">Sistem memiliki <strong style="color:white">routing bertingkat</strong>: business classifier di pintu depan, lalu route SOP, HC analytics, gabungan SOP+data, atau HC policy advisory sesuai intent dan role pengguna.</p>
+      <div class="stats">
+        <div class="stat"><div class="num">2</div><div class="lbl">Mode Interaksi</div></div>
+        <div class="stat"><div class="num">4</div><div class="lbl">Route Bisnis</div></div>
+        <div class="stat"><div class="num">3</div><div class="lbl">Lapisan Konteks</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card">
+        <div class="card-icon" style="background:rgba(183,19,26,.15)"><i data-lucide="file-text" style="width:18px;height:18px;color:var(--accent)"></i></div>
+        <h4>SOP &amp; Kebijakan</h4>
+        <p>Jawaban akurat dari dokumen PDF perusahaan menggunakan RAG hybrid, reranking, query analysis, dan policy injection untuk kasus aturan spesifik seperti perjalanan dinas</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(96,165,250,.12)"><i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--blue)"></i></div>
+        <h4>HC Analytics</h4>
+        <p>Pertanyaan bahasa natural dikonversi ke SQL, divalidasi, dieksekusi ke database, lalu diperkaya dengan insight, narasi, dan rekomendasi visualisasi interaktif</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(167,139,250,.12)"><i data-lucide="scale" style="width:18px;height:18px;color:var(--purple)"></i></div>
+        <h4>HC Advisory</h4>
+        <p>Route khusus Human Capital untuk evaluasi, harmonisasi, dan drafting kebijakan baru terhadap aturan existing serta data aktual</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3 – DUA MODE -->
+<section class="slide" id="s3">
+  <div class="badge">Core Features</div>
+  <h2 class="gradient-text">Dua Mode Interaksi</h2>
+  <div class="divider"></div>
+  <div class="modes">
+    <div class="mode-card chat">
+      <div class="m-icon"><i data-lucide="message-square" style="width:22px;height:22px;color:var(--accent)"></i></div>
+      <h3>Chat Mode</h3>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">Antarmuka chat teks real-time dengan streaming SSE</p>
+      <ul class="feature-list">
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Streaming jawaban token per token</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Tabel data HC interaktif + Chart.js</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Riwayat sesi multi-percakapan + restore context</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Feedback thumbs up/down per jawaban</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Role-based access (karyawan vs HC)</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> SINTA session bootstrap + user context injection</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Markdown rendering otomatis</li>
+      </ul>
+    </div>
+    <div class="mode-card call">
+      <div class="m-icon"><i data-lucide="phone" style="width:22px;height:22px;color:var(--blue)"></i></div>
+      <h3>Call Mode</h3>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">Overlay telepon full-screen — seperti menelepon AI</p>
+      <ul class="feature-list">
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Rekam suara via MediaRecorder API</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Transkripsi real-time (OpenAI Whisper)</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> AI bicara balik via ElevenLabs atau OpenAI TTS fallback</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Loop: dengar → proses → jawab → ulang</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Transcript muncul di layar</li>
+        <li><i data-lucide="chevron-right" style="width:13px;height:13px"></i> Jawaban dipadatkan untuk pengalaman call yang lebih natural</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4 – FITUR -->
+<section class="slide" id="s4">
+  <div class="badge">Features</div>
+  <h2 class="gradient-text">Fitur Utama</h2>
+  <div class="divider"></div>
+  <div class="feature-row">
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="search" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>RAG Hybrid v7.2.0</h4>
+      <p>Pinecone vector search (top-15 chunks) + Cohere reranking multilingual untuk retrieval SOP yang akurat</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="database" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Text-to-SQL Guarded</h4>
+      <p>Bahasa natural → SQL → validasi keamanan → eksekusi PostgreSQL, dengan aturan SELECT-only, anti-injection, dan join registry</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="map-pin" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Travel Calculator</h4>
+      <p>Kalkulasi biaya perjalanan dinas via Google Maps API — otomatis sesuai kebijakan perusahaan</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="line-chart" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>8 Tipe Visualisasi</h4>
+      <p>Bar, line, pie, doughnut, radar, dan lainnya — jenis grafik direkomendasikan AI, dirender Chart.js</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="brain" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Agentic HC Analyst</h4>
+      <p>Pertanyaan HC kompleks dipecah menjadi plan bertahap, dievaluasi per langkah, lalu disintesis menjadi executive summary dan rekomendasi</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="radio" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>SSE Streaming</h4>
+      <p>Server-Sent Events untuk streaming jawaban real-time — dengan pembatalan request otomatis jika user pindah</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="layers" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Hybrid Memory</h4>
+      <p>Redis hot cache 24 jam + Supabase persistent storage untuk riwayat percakapan yang cepat dan tahan lama</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="flask-conical" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>LLM-as-a-Judge</h4>
+      <p>Background task mengevaluasi Faithfulness, Answer Relevance, dan Context Precision setiap interaksi</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="activity" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Langfuse Tracing</h4>
+      <p>OTel-compatible observability — setiap request di-trace lengkap dari intent klasifikasi sampai jawaban akhir</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="blocks" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Schema Explorer &amp; Playground</h4>
+      <p>HC dapat menelusuri schema HC, preview query, dan menyiapkan dataset low-code tanpa keluar dari antarmuka utama</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="shield" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Rate Limiting</h4>
+      <p>SlowAPI per-IP: 15 req/menit untuk chat, 5 req/menit untuk call mode — mencegah penyalahgunaan API</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5 – ARCHITECTURE FLOW -->
+<section class="slide" id="s5">
+  <div class="badge">Architecture</div>
+  <h2 class="gradient-text" style="font-size:2rem">Alur Request — Chat Mode</h2>
+  <div class="divider"></div>
+
+  <div class="flow-wrap" style="margin-top:.4rem">
+  <div class="arch-wrap">
+
+    <div class="arch-pipe">
+      <div class="anode ext" style="flex:0 0 auto;min-width:138px">
+        <span class="anode-id">E1</span>
+        <strong>User / Browser</strong>
+        <span>Kirim pertanyaan via /ask atau /ask/stream</span>
+      </div>
+      <div class="arow-h">→ request ────►</div>
+      <div class="anode hot" style="flex:1.3">
+        <span class="anode-id">P1</span>
+        <strong>API Gateway</strong>
+        <span>Nginx + FastAPI · cek rate limit · siapkan trace · load history sesi</span>
+      </div>
+      <div class="arow-h">──────────────►</div>
+      <div class="anode proc" style="flex:1.3">
+        <span class="anode-id">P2</span>
+        <strong>Unified Classifier</strong>
+        <span>Klasifikasi intent: <em style="color:rgba(255,255,255,.75)">greeting</em> / <em style="color:rgba(255,255,255,.75)">casual_chat</em> / <em style="color:rgba(255,255,255,.75)">business</em></span>
+      </div>
+    </div>
+
+    <div class="arch-split">
+      <div class="arch-aside">
+        <span class="aside-pill">↓ greeting / casual</span>
+        <div class="anode proc" style="width:100%">
+          <span class="anode-id">P2a</span>
+          <strong style="font-size:.71rem">Template Response</strong>
+          <span>Jawab langsung tanpa masuk engine · langsung balik ke browser</span>
+        </div>
+      </div>
+
+      <div class="arch-main">
+        <div class="arch-down">↓ business query — lanjut ke pipeline</div>
+
+        <div class="arch-gate">
+          <div class="anode gate" style="flex:1">
+            <span class="anode-id">P3</span>
+            <strong>Role &amp; Session Context Gate</strong>
+            <span>Pulihkan user_context + history aktif · cek role hasil SINTA · tentukan role efektif user</span>
+          </div>
+          <div class="arch-mem-conn">↔</div>
+          <div class="arch-mem">
+            <div class="mem-label">D1 · Hybrid Memory</div>
+            <span>Redis — hot cache 24h</span>
+            <span>Supabase — persistent history &amp; session</span>
+          </div>
+        </div>
+
+        <div class="arch-down">↓ tentukan lane berdasarkan role user</div>
+
+        <div class="arch-lanes">
+          <div class="arch-lane kw">
+            <span class="lane-tag">P4 · Lane Non-HC / Karyawan</span>
+            <strong>A-only Fast Path</strong>
+            <ul>
+              <li>Query dikontekstualisasi dengan smart contextualize</li>
+              <li>Tidak memanggil classifier HC — request dipaksa ke Intent A / SOP retrieval only</li>
+              <li>Output bisa langsung balik sebagai jawaban SOP grounded ke dokumen sumber</li>
+              <li>Tidak boleh akses DB HC atau policy advisory</li>
+            </ul>
+          </div>
+          <div class="arch-lane hc">
+            <span class="lane-tag">P5 · Lane HC</span>
+            <strong>HC Route Orchestrator</strong>
+            <ul>
+              <li>Standalone question dibentuk dulu dari history + context aktif</li>
+              <li>classify_hc_route() memilih A, B, AB, atau C</li>
+              <li><b>A</b>: pertanyaan aturan → SOP engine</li>
+              <li><b>B</b>: data → SQL gen → validator → executor → analyzer</li>
+              <li><b>AB</b>: jalankan A &amp; B paralel, lalu sintesis hasilnya</li>
+              <li><b>C</b>: advisory kebijakan HC berbasis SOP existing sebagai source of truth</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="arch-down">↓ akses knowledge / data store sesuai route</div>
+
+        <div class="arch-stores">
+          <div class="anode store">
+            <span class="anode-id">D2</span>
+            <strong>SOP Knowledge Store</strong>
+            <span>Pinecone vector search · Cohere reranking multilingual · policy injection. Dipakai Route A, Route C, dan sisi SOP dari AB</span>
+          </div>
+          <div class="anode store">
+            <span class="anode-id">D3</span>
+            <strong>HC Data Store</strong>
+            <span>Supabase PostgreSQL · Text-to-SQL guarded · query analytics &amp; visualisasi. Dipakai Route B dan sisi data dari AB</span>
+          </div>
+        </div>
+
+        <div class="arch-down">↓ hasilkan &amp; persist jawaban akhir</div>
+
+        <div class="anode hot">
+          <span class="anode-id">P6</span>
+          <strong>Final Response Assembly</strong>
+          <span>A-only atau B-only bisa langsung dirakit dan dikirim. Jika AB: sintesis SOP + data, lalu persist ke hybrid memory dan stream ke frontend &nbsp;·&nbsp; <span style="color:rgba(255,255,255,.28)">Bg: Langfuse trace · LLM-Judge · feedback trace ID</span></span>
+        </div>
+
+        <div class="arch-down">↓ kirim jawaban ke user</div>
+
+        <div class="anode ext">
+          <span class="anode-id">E2</span>
+          <strong>Browser Render</strong>
+          <span>Teks markdown · Chart interaktif (Chart.js) · Audio stream (call mode)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arch-note">
+      Auth SINTA saat ini menghasilkan dua role inti: <strong style="color:rgba(255,255,255,.75)">karyawan</strong> dan <strong style="color:rgba(255,255,255,.75)">hc</strong>. Karyawan selalu A-only, sedangkan HC dapat masuk ke route A, B, AB, atau C.
+    </div>
+
+  </div>
+  </div>
+</section>
+
+<!-- SLIDE 6 – PER ROUTE -->
+<section class="slide" id="s6">
+  <div class="badge">Route Features</div>
+  <h2 class="gradient-text">Fitur per Route</h2>
+  <div class="divider"></div>
+  <div class="roles">
+    <div class="role-card" style="border-color:rgba(183,19,26,.28)">
+      <div class="role-head">
+        <div class="role-icon" style="background:rgba(183,19,26,.15)"><i data-lucide="file-text" style="width:20px;height:20px;color:var(--accent)"></i></div>
+        <div><h4>Route A — SOP &amp; Kebijakan</h4><p class="sub" style="margin:0">Pertanyaan aturan, prosedur, hak, tarif, dan dokumen</p></div>
+      </div>
+      <div class="access-list">
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Query dianalisis dulu agar pencarian dokumen lebih tajam</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Vector retrieval + multilingual reranking untuk memilih chunk paling relevan</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Bisa menyisipkan aturan spesifik seperti perjalanan dinas dan kalkulasi rute</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Output utama berupa jawaban ter-grounded ke dokumen sumber</div>
+      </div>
+    </div>
+    <div class="role-card" style="border-color:rgba(96,165,250,.28)">
+      <div class="role-head">
+        <div class="role-icon" style="background:rgba(96,165,250,.12)"><i data-lucide="database" style="width:20px;height:20px;color:var(--blue)"></i></div>
+        <div><h4>Route B — HC Analytics</h4><p class="sub" style="margin:0">Pertanyaan faktual dan analitis ke database HC</p></div>
+      </div>
+      <div class="access-list">
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Natural language diubah ke SQL PostgreSQL yang sudah dibatasi dan divalidasi</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Ada guard untuk JOIN resmi, grain data, dan deduplikasi headcount</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Hasil diperkaya narasi, insight, SQL transparency, dan chart recommendation</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Pertanyaan kompleks bisa naik ke mode agentic analyst multi-step</div>
+      </div>
+    </div>
+    <div class="role-card" style="border-color:rgba(251,146,60,.28)">
+      <div class="role-head">
+        <div class="role-icon" style="background:rgba(251,146,60,.12)"><i data-lucide="git-merge" style="width:20px;height:20px;color:var(--orange)"></i></div>
+        <div><h4>Route AB — SOP + Data</h4><p class="sub" style="margin:0">Pertanyaan yang butuh aturan dan data aktual sekaligus</p></div>
+      </div>
+      <div class="access-list">
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Menjalankan route A dan B secara paralel untuk menghemat waktu</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Cocok untuk simulasi biaya, impact policy, atau evaluasi aturan berbasis data</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Tahap akhir melakukan synthesis agar hasil SOP dan data tidak terpisah</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Output menekankan aturan, data faktual, simulasi, dan rujukan dokumen</div>
+      </div>
+    </div>
+    <div class="role-card" style="border-color:rgba(167,139,250,.28)">
+      <div class="role-head">
+        <div class="role-icon" style="background:rgba(167,139,250,.15)"><i data-lucide="scale" style="width:20px;height:20px;color:var(--purple)"></i></div>
+        <div><h4>Route C — HC Policy Advisory</h4><p class="sub" style="margin:0">Khusus HC untuk merancang atau meninjau kebijakan</p></div>
+      </div>
+      <div class="access-list">
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Memeriksa dukungan, konflik, gap, dan kebutuhan revisi pada aturan existing</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Reuse retrieval SOP sebagai sumber kebenaran utama</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Bisa dipakai untuk draft policy baru, harmonisasi aturan, atau evaluasi kebijakan</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Jika perlu bukti data aktual, pertanyaan bisa diarahkan ke AB</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7 – PLAYGROUND -->
+<section class="slide" id="s7">
+  <div class="badge">Playground</div>
+  <h2 class="gradient-text">Playground Bisa Apa Saja?</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Playground adalah <strong style="color:white">workspace low-code</strong> untuk tim HC menyiapkan query dan dataset HC tanpa harus menulis SQL mentah dari nol.</p>
+      <br>
+      <p class="lead-left">Mode ini mengambil schema HC, known joins, dan statistik kolom untuk membantu user membangun transformasi data secara visual atau dengan bantuan AI builder.</p>
+      <div style="display:flex;gap:.55rem;flex-wrap:wrap;margin-top:1.2rem">
+        <span class="tag"><i data-lucide="library" style="width:12px;height:12px"></i> Catalog</span>
+        <span class="tag"><i data-lucide="eye" style="width:12px;height:12px"></i> Live Preview</span>
+        <span class="tag"><i data-lucide="share-2" style="width:12px;height:12px"></i> Shared Dataset</span>
+        <span class="tag"><i data-lucide="sparkles" style="width:12px;height:12px"></i> AI Builder</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card">
+        <div class="card-icon" style="background:rgba(96,165,250,.12)"><i data-lucide="library" style="width:18px;height:18px;color:var(--blue)"></i></div>
+        <h4>Catalog &amp; Schema</h4>
+        <p>Melihat daftar tabel HC, kolom yang tersedia, tipe data, serta relasi join yang sudah diketahui sistem.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(183,19,26,.15)"><i data-lucide="sparkles" style="width:18px;height:18px;color:var(--accent)"></i></div>
+        <h4>AI Build</h4>
+        <p>User bisa menulis permintaan natural seperti "total lembur per direktorat", lalu AI mengubahnya menjadi PlaygroundSpec JSON yang siap dipreview.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:rgba(74,222,128,.1)"><i data-lucide="table-properties" style="width:18px;height:18px;color:var(--green)"></i></div>
+        <h4>Live Preview &amp; Publish</h4>
+        <p>Spec divalidasi, diubah menjadi SQL, dijalankan dalam mode preview, lalu bisa disimpan sebagai session atau dipublish menjadi shared dataset.</p>
+      </div>
+    </div>
+  </div>
+  <div class="feature-row" style="margin-top:1.1rem">
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="filter" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Filter Tree</h4>
+      <p>Menyusun filter sederhana maupun kombinasi AND/OR untuk slicing data yang lebih presisi.</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="git-merge" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Known Join Guidance</h4>
+      <p>Playground mengarahkan user memakai relasi tabel resmi agar query tidak asal menggabungkan data.</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="calculator" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Metrics &amp; Grouping</h4>
+      <p>Mendukung agregasi seperti sum, avg, count, count_distinct, sorting, ranking, dan limit hasil.</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="save" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Session &amp; Shared View</h4>
+      <p>Hasil kerja bisa disimpan sebagai session internal atau dipublish sebagai shared view untuk organisasi.</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="download" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Quick Export</h4>
+      <p>Preview hasil dapat diekspor cepat ke CSV dari antarmuka frontend untuk analisis lanjutan.</p>
+    </div>
+    <div class="feat-card">
+      <div class="fi"><i data-lucide="shield-check" style="width:16px;height:16px;color:var(--accent)"></i></div>
+      <h4>Validation Layer</h4>
+      <p>Spec dan SQL dicek dulu sebelum dijalankan agar tetap aman dan sesuai schema HC yang valid.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8 – TECH STACK -->
+<section class="slide" id="s8">
+  <div class="badge">Tech Stack</div>
+  <h2 class="gradient-text">Teknologi yang Digunakan</h2>
+  <div class="divider"></div>
+  <div class="stack-grid">
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="server" style="width:14px;height:14px"></i><span class="sg-title">Backend</span></div>
+      <span class="tech-pill"><span class="dp"></span>FastAPI</span>
+      <span class="tech-pill"><span class="dp"></span>Python 3.11</span>
+      <span class="tech-pill"><span class="dp"></span>Gunicorn</span>
+      <span class="tech-pill"><span class="dp"></span>Uvicorn Workers</span>
+      <span class="tech-pill"><span class="dp"></span>SlowAPI</span>
+      <span class="tech-pill"><span class="dp"></span>Pydantic v2</span>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="cpu" style="width:14px;height:14px"></i><span class="sg-title">AI / LLM</span></div>
+      <span class="tech-pill"><span class="dp"></span>GPT-4o-mini</span>
+      <span class="tech-pill"><span class="dp"></span>LangChain</span>
+      <span class="tech-pill"><span class="dp"></span>Unified Intent Router</span>
+      <span class="tech-pill"><span class="dp"></span>OpenAI Whisper</span>
+      <span class="tech-pill"><span class="dp"></span>ElevenLabs TTS</span>
+      <span class="tech-pill"><span class="dp"></span>Cohere Rerank v3</span>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="database" style="width:14px;height:14px"></i><span class="sg-title">Data &amp; Storage</span></div>
+      <span class="tech-pill"><span class="dp"></span>Pinecone</span>
+      <span class="tech-pill"><span class="dp"></span>Supabase</span>
+      <span class="tech-pill"><span class="dp"></span>Upstash Redis</span>
+      <span class="tech-pill"><span class="dp"></span>PostgreSQL</span>
+      <span class="tech-pill"><span class="dp"></span>psycopg2</span>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="layout" style="width:14px;height:14px"></i><span class="sg-title">Frontend</span></div>
+      <span class="tech-pill"><span class="dp"></span>Vanilla JS</span>
+      <span class="tech-pill"><span class="dp"></span>Tailwind CSS</span>
+      <span class="tech-pill"><span class="dp"></span>Chart.js</span>
+      <span class="tech-pill"><span class="dp"></span>marked.js</span>
+      <span class="tech-pill"><span class="dp"></span>MediaRecorder API</span>
+      <span class="tech-pill"><span class="dp"></span>SSE EventSource</span>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="activity" style="width:14px;height:14px"></i><span class="sg-title">Observability</span></div>
+      <span class="tech-pill"><span class="dp"></span>Langfuse v4</span>
+      <span class="tech-pill"><span class="dp"></span>OpenTelemetry</span>
+      <span class="tech-pill"><span class="dp"></span>LLM-as-a-Judge</span>
+      <span class="tech-pill"><span class="dp"></span>Human Feedback Trace IDs</span>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="cloud" style="width:14px;height:14px"></i><span class="sg-title">Infrastructure</span></div>
+      <span class="tech-pill"><span class="dp"></span>DigitalOcean SGP1</span>
+      <span class="tech-pill"><span class="dp"></span>Nginx</span>
+      <span class="tech-pill"><span class="dp"></span>PM2</span>
+      <span class="tech-pill"><span class="dp"></span>Certbot SSL</span>
+      <span class="tech-pill"><span class="dp"></span>Ubuntu 24.04</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9 – EXTERNAL SERVICES -->
+<section class="slide" id="s9">
+  <div class="badge">Integrations</div>
+  <h2 class="gradient-text">Layanan Eksternal</h2>
+  <div class="divider"></div>
+  <div class="service-grid">
+    <div class="svc-card">
+      <div class="svc-icon" style="background:rgba(96,165,250,.12)"><i data-lucide="cpu" style="width:20px;height:20px;color:var(--blue)"></i></div>
+      <div class="s-name">OpenAI</div>
+      <div class="s-role">GPT-4o-mini (LLM), Whisper (STT), text-embedding-3-small</div>
+      <span class="s-badge cloud">Cloud only</span>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon" style="background:rgba(167,139,250,.12)"><i data-lucide="search" style="width:20px;height:20px;color:var(--purple)"></i></div>
+      <div class="s-name">Pinecone</div>
+      <div class="s-role">Vector database untuk embedding dokumen SOP (1536 dimensi)</div>
+      <span class="s-badge cloud">Cloud only</span>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon" style="background:rgba(251,146,60,.12)"><i data-lucide="filter" style="width:20px;height:20px;color:var(--orange)"></i></div>
+      <div class="s-name">Cohere</div>
+      <div class="s-role">Reranking hasil RAG dengan rerank-multilingual-v3.0</div>
+      <span class="s-badge cloud">Cloud only</span>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon" style="background:rgba(183,19,26,.15)"><i data-lucide="mic" style="width:20px;height:20px;color:var(--accent)"></i></div>
+      <div class="s-name">ElevenLabs</div>
+      <div class="s-role">TTS bahasa Indonesia, model eleven_flash_v2_5</div>
+      <span class="s-badge cloud">Cloud only</span>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon" style="background:rgba(74,222,128,.1)"><i data-lucide="map" style="width:20px;height:20px;color:var(--green)"></i></div>
+      <div class="s-name">Google Maps</div>
+      <div class="s-role">Kalkulasi jarak untuk aturan biaya perjalanan dinas</div>
+      <span class="s-badge cloud">Cloud only</span>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon" style="background:rgba(74,222,128,.1)"><i data-lucide="database" style="width:20px;height:20px;color:var(--green)"></i></div>
+      <div class="s-name">Supabase</div>
+      <div class="s-role">PostgreSQL untuk data HC dan riwayat chat persisten, lengkap dengan endpoint sesi dan ownership check</div>
+      <span class="s-badge self">Bisa self-host</span>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon" style="background:rgba(74,222,128,.1)"><i data-lucide="zap" style="width:20px;height:20px;color:var(--green)"></i></div>
+      <div class="s-name">Upstash Redis</div>
+      <div class="s-role">Hot cache riwayat percakapan, metadata session, dan user context restore lintas restart</div>
+      <span class="s-badge self">Bisa self-host</span>
+    </div>
+    <div class="svc-card">
+      <div class="svc-icon" style="background:rgba(74,222,128,.1)"><i data-lucide="activity" style="width:20px;height:20px;color:var(--green)"></i></div>
+      <div class="s-name">Langfuse</div>
+      <div class="s-role">LLM observability, OTel tracing, scoring per interaksi</div>
+      <span class="s-badge self">Bisa self-host</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10 – ROLE SYSTEM -->
+<section class="slide" id="s10">
+  <div class="badge">Access Control</div>
+  <h2 class="gradient-text">Role Yang Sebenarnya Dipakai</h2>
+  <div class="divider"></div>
+  <div class="roles">
+    <div class="role-card">
+      <div class="role-head">
+        <div class="role-icon" style="background:rgba(255,255,255,.06)"><i data-lucide="hard-hat" style="width:20px;height:20px;color:var(--muted)"></i></div>
+        <div><h4>Non-HC / Karyawan</h4><p class="sub" style="margin:0">Role default dari unit non-HC di SINTA</p></div>
+      </div>
+      <div class="access-list">
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Role ditetapkan otomatis dari unit kerja melalui endpoint auth SINTA</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Tanya SOP &amp; Kebijakan perusahaan</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Kalkulasi biaya perjalanan dinas</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Mode Voice (call AI)</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Riwayat sesi percakapan</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Fast path ke Route A setelah lolos business classifier</div>
+        <div class="access-item"><i data-lucide="x-circle" class="no" style="width:15px;height:15px"></i> Tidak mengakses Route B, AB, atau C</div>
+        <div class="access-item"><i data-lucide="x-circle" class="no" style="width:15px;height:15px"></i> Schema explorer &amp; data playground</div>
+      </div>
+    </div>
+    <div class="role-card" style="border-color:rgba(167,139,250,.28)">
+      <div class="role-head">
+        <div class="role-icon" style="background:rgba(167,139,250,.15)"><i data-lucide="scale" style="width:20px;height:20px;color:var(--purple)"></i></div>
+        <div><h4>HC</h4><p class="sub" style="margin:0">Role HC yang mendapat akses penuh ke orchestrator</p></div>
+      </div>
+      <div class="access-list">
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Semua akses Non-HC / Karyawan</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Masuk ke classifier khusus HC untuk memilih A, B, AB, atau C</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> HC Analytics (Text-to-SQL) dan visualisasi data</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> HC policy advisory route (C)</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Evaluasi kebijakan existing berbasis SOP + data</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Database Schema Explorer UI dan Playground mode</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Playground mode untuk persiapan dataset</div>
+        <div class="access-item"><i data-lucide="check-circle" class="ok" style="width:15px;height:15px"></i> Auto-role via unit kerja SINTA</div>
+      </div>
+    </div>
+  </div>
+  <div class="note">
+    <i data-lucide="info" style="width:15px;height:15px"></i>
+    Secara implementasi auth SINTA saat ini, role utama yang dihasilkan backend adalah <code>hc</code> dan <code>karyawan</code>. Label seperti HR / Admin / Manager masih ada di beberapa path manual/legacy UI, tetapi model role inti yang dipakai integrasi SINTA adalah dua role ini.
+  </div>
+</section>
+
+<!-- SLIDE 11 – INFRASTRUKTUR -->
+<section class="slide" id="s11">
+  <div class="badge">Infrastructure</div>
+  <h2 class="gradient-text" style="font-size:2rem">Infrastruktur &amp; Deployment</h2>
+  <div class="divider"></div>
+  <div class="infra-diagram">
+    <div class="infra-col main">
+      <div class="infra-layer">
+        <div class="il-head" style="margin-bottom:.4rem">
+          <i data-lucide="globe" style="width:13px;height:13px;color:var(--blue)"></i>
+          <span class="il-title" style="color:var(--blue)">Internet Layer</span>
+        </div>
+        <div class="il-content">
+          <div class="infra-node blue"><i data-lucide="users" style="width:12px;height:12px"></i> User Browser</div>
+        </div>
+      </div>
+      <div class="infra-arrow"><i data-lucide="arrow-down" style="width:14px;height:14px"></i></div>
+      <div class="infra-layer">
+        <div class="il-head" style="margin-bottom:.4rem">
+          <i data-lucide="shield" style="width:13px;height:13px;color:var(--green)"></i>
+          <span class="il-title" style="color:var(--green)">Web Server Layer — DigitalOcean SGP1</span>
+        </div>
+        <div class="il-content">
+          <div class="infra-node green"><i data-lucide="shield" style="width:12px;height:12px"></i> Nginx (443/80)</div>
+          <div class="infra-node green"><i data-lucide="lock" style="width:12px;height:12px"></i> Certbot SSL/TLS</div>
+          <div class="infra-node green"><i data-lucide="folder" style="width:12px;height:12px"></i> Static Files /web/</div>
+        </div>
+      </div>
+      <div class="infra-arrow"><i data-lucide="arrow-down" style="width:14px;height:14px"></i></div>
+      <div class="infra-layer">
+        <div class="il-head" style="margin-bottom:.4rem">
+          <i data-lucide="cpu" style="width:13px;height:13px;color:var(--orange)"></i>
+          <span class="il-title" style="color:var(--orange)">Process Layer — Dikelola PM2</span>
+        </div>
+        <div class="il-content">
+          <div class="infra-node orange"><i data-lucide="git-fork" style="width:12px;height:12px"></i> Gunicorn (3 workers)</div>
+          <div class="infra-node orange"><i data-lucide="zap" style="width:12px;height:12px"></i> Uvicorn ASGI</div>
+          <div class="infra-node orange"><i data-lucide="refresh-cw" style="width:12px;height:12px"></i> PM2 (auto-restart)</div>
+        </div>
+      </div>
+      <div class="infra-arrow"><i data-lucide="arrow-down" style="width:14px;height:14px"></i></div>
+      <div class="infra-layer" style="border-color:rgba(183,19,26,.3);background:rgba(183,19,26,.06)">
+        <div class="il-head" style="margin-bottom:.4rem">
+          <i data-lucide="layers" style="width:13px;height:13px;color:var(--accent)"></i>
+          <span class="il-title" style="color:var(--accent)">Application Layer — FastAPI v8.1.0</span>
+        </div>
+        <div class="il-content">
+          <div class="infra-node red"><i data-lucide="message-square" style="width:12px;height:12px"></i> Chat Orchestrator</div>
+          <div class="infra-node red"><i data-lucide="search" style="width:12px;height:12px"></i> RAG Engine</div>
+          <div class="infra-node red"><i data-lucide="database" style="width:12px;height:12px"></i> HC SQL + Agent Layer</div>
+          <div class="infra-node red"><i data-lucide="mic" style="width:12px;height:12px"></i> STT / TTS</div>
+        </div>
+      </div>
+    </div>
+    <div class="infra-col services">
+      <div class="server-specs">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem">
+          <i data-lucide="server" style="width:13px;height:13px;color:var(--accent)"></i>
+          <span style="font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)">Spesifikasi Server</span>
+        </div>
+        <div class="spec-row"><span class="spec-key">Provider</span><span class="spec-val">DigitalOcean SGP1</span></div>
+        <div class="spec-row"><span class="spec-key">CPU / RAM</span><span class="spec-val">1 vCPU / 2 GB</span></div>
+        <div class="spec-row"><span class="spec-key">OS</span><span class="spec-val">Ubuntu 24.04 LTS</span></div>
+        <div class="spec-row"><span class="spec-key">Workers</span><span class="spec-val">Gunicorn × 3</span></div>
+        <div class="spec-row"><span class="spec-key">Kapasitas</span><span class="spec-val">~30–50 concurrent users</span></div>
+      </div>
+      <div>
+        <div class="svc-section-title" style="margin-top:.5rem">Koneksi Eksternal dari Server</div>
+        <div class="ext-svc-row">
+          <div class="ext-svc-item">
+            <div class="esv-icon" style="background:rgba(96,165,250,.12)"><i data-lucide="cpu" style="width:13px;height:13px;color:var(--blue)"></i></div>
+            <div class="esv-info"><div class="esv-name">OpenAI API</div><div class="esv-desc">LLM · Whisper · Embeddings</div></div>
+          </div>
+          <div class="ext-svc-item">
+            <div class="esv-icon" style="background:rgba(167,139,250,.12)"><i data-lucide="search" style="width:13px;height:13px;color:var(--purple)"></i></div>
+            <div class="esv-info"><div class="esv-name">Pinecone + Cohere</div><div class="esv-desc">Vector search + Reranking</div></div>
+          </div>
+          <div class="ext-svc-item">
+            <div class="esv-icon" style="background:rgba(183,19,26,.12)"><i data-lucide="mic" style="width:13px;height:13px;color:var(--accent)"></i></div>
+            <div class="esv-info"><div class="esv-name">ElevenLabs</div><div class="esv-desc">Indonesian TTS</div></div>
+          </div>
+          <div class="ext-svc-item">
+            <div class="esv-icon" style="background:rgba(74,222,128,.1)"><i data-lucide="database" style="width:13px;height:13px;color:var(--green)"></i></div>
+            <div class="esv-info"><div class="esv-name">Supabase + Redis</div><div class="esv-desc">Persistent memory + hot context cache</div></div>
+          </div>
+          <div class="ext-svc-item">
+            <div class="esv-icon" style="background:rgba(251,146,60,.1)"><i data-lucide="activity" style="width:13px;height:13px;color:var(--orange)"></i></div>
+            <div class="esv-info"><div class="esv-name">Langfuse + Google Maps</div><div class="esv-desc">Observability + travel policy enrichment</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 12 – OUTRO -->
+<section class="slide" id="s12">
+  <div class="big-logo">
+    <i data-lucide="bot" style="width:54px;height:54px;color:white;stroke-width:1.7"></i>
+  </div>
+  <div class="badge" style="margin-top:.8rem"><span class="pulse-dot"></span>Enterprise AI</div>
+  <h1 class="gradient-text">HC AI Chatbot Project</h1>
+  <p class="tagline">Portfolio project built for PT Semen Indonesia Group</p>
+  <div class="feat-badges">
+    <span class="fb"><i data-lucide="message-square" style="width:12px;height:12px"></i> Chat Mode</span>
+    <span class="fb"><i data-lucide="phone" style="width:12px;height:12px"></i> Call Mode</span>
+    <span class="fb"><i data-lucide="file-text" style="width:12px;height:12px"></i> SOP Q&amp;A</span>
+    <span class="fb"><i data-lucide="bar-chart-2" style="width:12px;height:12px"></i> HC Analytics</span>
+    <span class="fb"><i data-lucide="mic" style="width:12px;height:12px"></i> Voice AI</span>
+    <span class="fb"><i data-lucide="radio" style="width:12px;height:12px"></i> Real-time Streaming</span>
+    <span class="fb"><i data-lucide="activity" style="width:12px;height:12px"></i> LLM Evaluation</span>
+  </div>
+  <p class="credit">Built as an AI Engineer project for PT Semen Indonesia Group · FastAPI v8.1.0 · GPT-4o-mini · ElevenLabs · Pinecone · Cohere</p>
+</section>
+
+</div>
+
+<div class="nav">
+  <button onclick="navigate(-1)"><i data-lucide="chevron-left" style="width:16px;height:16px"></i></button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter">1 / 12</span>
+  <button onclick="navigate(1)"><i data-lucide="chevron-right" style="width:16px;height:16px"></i></button>
+</div>
+
+<button id="fsBtn" onclick="toggleFullscreen()" title="Fullscreen" style="
+  position: fixed; bottom: 1.55rem; left: 1.5rem; z-index: 100;
+  background: rgba(255,255,255,.06); backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.08); border-radius: 50px;
+  color: #f0f0f5; cursor: pointer; padding: .55rem .75rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+" onmouseover="this.style.background='rgba(183,19,26,.3)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">
+  <i id="fsIcon" data-lucide="maximize-2" style="width:15px;height:15px"></i>
+</button>
+
+<script>
+  lucide.createIcons();
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  const progressBar = document.getElementById('progressBar');
+  let current = 0;
+  const total = slides.length;
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+  function updateUI() {
+    counter.textContent = `${current + 1} / ${total}`;
+    progressBar.style.width = `${((current + 1) / total) * 100}%`;
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    const prev = current;
+    current = n;
+    slides[current].classList.add('active');
+    setTimeout(() => slides[prev].classList.remove('exit'), 450);
+    updateUI();
+  }
+  function navigate(dir) { goTo(current + dir); }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
+    if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+  });
+  function toggleFullscreen() {
+    const el = document.documentElement;
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (!isFs) {
+      (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    }
+  }
+  document.addEventListener('fullscreenchange', updateFsIcon);
+  document.addEventListener('webkitfullscreenchange', updateFsIcon);
+  function updateFsIcon() {
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    const icon = document.getElementById('fsIcon');
+    icon.setAttribute('data-lucide', isFs ? 'minimize-2' : 'maximize-2');
+    lucide.createIcons();
+  }
+  updateUI();
+</script>
+</body>
+</html>

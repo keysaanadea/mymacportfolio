@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>recMe — Real-time Network Monitoring Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --sky: #0ea5e9; --sky-light: #38bdf8; --sky-dark: #0369a1;
+  --sky-glow: rgba(14,165,233,.35); --bg: #0a0a0f;
+  --surface: rgba(255,255,255,.045); --border: rgba(255,255,255,.08);
+  --text: #f0f0f5; --muted: rgba(240,240,245,.5); --accent: #38bdf8;
+  --cyan: #22d3ee; --blue: #60a5fa; --purple: #a78bfa; --orange: #fb923c;
+  --green: #4ade80; --red: #f87171;
+}
+html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+.deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 3.5rem 5.5rem;
+  opacity: 0; transform: translateX(60px);
+  transition: opacity .45s ease, transform .45s ease;
+  pointer-events: none;
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.exit   { opacity: 0; transform: translateX(-60px); }
+.slide::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 20%, rgba(14,165,233,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(14,165,233,.07) 0%, transparent 70%),
+    var(--bg);
+}
+.slide::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.nav {
+  position: fixed; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 1rem; z-index: 100;
+  background: rgba(255,255,255,.06); backdrop-filter: blur(20px);
+  border: 1px solid var(--border); border-radius: 50px; padding: .55rem 1.3rem;
+}
+.nav button { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: .25rem .6rem; border-radius: 50px; transition: background .2s; display: flex; align-items: center; }
+.nav button:hover { background: rgba(14,165,233,.25); }
+.nav .counter { font-size: .8rem; color: var(--muted); min-width: 48px; text-align: center; }
+.nav .dots { display: flex; gap: .4rem; }
+.nav .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.22); cursor: pointer; transition: all .2s; }
+.nav .dot.active { background: var(--sky); width: 18px; border-radius: 3px; }
+.progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--sky-dark), var(--sky-light)); transition: width .4s ease; z-index: 200; }
+.key-hint { position: fixed; top: 1.4rem; right: 2rem; font-size: .7rem; color: rgba(255,255,255,.18); letter-spacing: .03em; }
+.badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(14,165,233,.15); border: 1px solid rgba(14,165,233,.35);
+  color: #7dd3fc; font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  padding: .28rem .85rem; border-radius: 50px; text-transform: uppercase; margin-bottom: 1rem;
+}
+.pulse-dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; animation: pulse 1.6s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+h1 { font-size: 3.8rem; font-weight: 800; line-height: 1.1; }
+h2 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; }
+h3 { font-size: 1.4rem; font-weight: 600; }
+.gradient-text { background: linear-gradient(135deg, #fff 20%, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.divider { width: 56px; height: 3px; background: linear-gradient(90deg, var(--sky), transparent); border-radius: 2px; margin: 1.2rem auto; }
+.lead { font-size: 1.1rem; color: var(--muted); line-height: 1.7; max-width: 620px; text-align: center; }
+.lead-left { font-size: 1rem; color: var(--muted); line-height: 1.7; }
+.tag { display: flex; align-items: center; gap: .4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 50px; padding: .35rem .9rem; font-size: .77rem; color: var(--muted); }
+.tag svg { color: var(--accent); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.3rem; backdrop-filter: blur(10px); transition: border-color .25s, transform .25s; }
+.card:hover { border-color: rgba(14,165,233,.4); transform: translateY(-2px); }
+.card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: .7rem; }
+.card h4 { font-size: .92rem; font-weight: 700; margin-bottom: .3rem; }
+.card p { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; width: 100%; margin-top: 1rem; align-items: start; }
+.stats { display: flex; gap: 2.5rem; margin-top: 1.5rem; }
+.stat .num { font-size: 2.6rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.stat .lbl { font-size: .72rem; color: var(--muted); margin-top: .25rem; }
+.check-list { display: flex; flex-direction: column; gap: .38rem; margin-top: .6rem; }
+.check-item { display: flex; align-items: flex-start; gap: .55rem; font-size: .82rem; color: var(--muted); line-height: 1.5; }
+.check-item svg.ok { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+.check-item svg.info { color: var(--cyan); flex-shrink: 0; margin-top: 2px; }
+#s1 { gap: .6rem; }
+.logo-ring {
+  width: 92px; height: 92px; border-radius: 22px;
+  background: linear-gradient(135deg, var(--sky-dark), var(--sky-light));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 55px var(--sky-glow); margin-bottom: 1rem;
+  animation: float 3.5s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+#s1 h1 { text-align: center; }
+#s1 .subtitle { font-size: 1.15rem; color: var(--muted); text-align: center; margin-top: .4rem; }
+#s1 .tags { display: flex; gap: .7rem; margin-top: 1.8rem; flex-wrap: wrap; justify-content: center; }
+.telkom-badge {
+  display: flex; align-items: center; gap: .5rem;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 50px; padding: .35rem 1rem; font-size: .75rem; color: var(--muted);
+  margin-top: .5rem;
+}
+.contrib-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.2rem; display: flex; align-items: flex-start; gap: .9rem; }
+.contrib-card .ci { width: 36px; height: 36px; border-radius: 10px; background: rgba(14,165,233,.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.contrib-card .ct h4 { font-size: .88rem; font-weight: 700; margin-bottom: .25rem; }
+.contrib-card .ct p { font-size: .75rem; color: var(--muted); line-height: 1.45; }
+.metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; width: 100%; margin-top: 1.2rem; }
+.metric-card { border-radius: 14px; padding: 1.4rem 1rem; text-align: center; }
+.metric-card .mnum { font-size: 2.2rem; font-weight: 800; line-height: 1; margin-bottom: .3rem; }
+.metric-card .mlbl { font-size: .78rem; color: var(--muted); line-height: 1.4; }
+.metric-card.sky { background: rgba(14,165,233,.08); border: 1px solid rgba(14,165,233,.22); }
+.metric-card.sky .mnum { color: var(--sky-light); }
+.metric-card.green { background: rgba(74,222,128,.07); border: 1px solid rgba(74,222,128,.2); }
+.metric-card.green .mnum { color: var(--green); }
+.metric-card.purple { background: rgba(167,139,250,.07); border: 1px solid rgba(167,139,250,.2); }
+.metric-card.purple .mnum { color: var(--purple); }
+.metric-card.orange { background: rgba(251,146,60,.07); border: 1px solid rgba(251,146,60,.2); }
+.metric-card.orange .mnum { color: var(--orange); }
+.feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; width: 100%; margin-top: 1.2rem; }
+.arch-flow { width: 100%; margin-top: .8rem; display: flex; flex-direction: column; gap: .5rem; }
+.arch-step { display: flex; align-items: center; gap: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: .8rem 1.2rem; }
+.arch-step .as-num { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 800; color: #fff; }
+.arch-step .as-body { flex: 1; }
+.arch-step .as-body strong { display: block; font-size: .88rem; font-weight: 700; margin-bottom: .15rem; }
+.arch-step .as-body span { font-size: .75rem; color: var(--muted); line-height: 1.4; }
+.arch-step .as-tag { flex-shrink: 0; font-size: .64rem; font-weight: 700; border-radius: 50px; padding: .2rem .65rem; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.arch-step.fe .as-num { background: rgba(14,165,233,.25); color: var(--accent); }
+.arch-step.fe .as-tag { background: rgba(14,165,233,.12); color: var(--accent); border: 1px solid rgba(14,165,233,.28); }
+.arch-step.be .as-num { background: rgba(239,68,68,.2); color: var(--red); }
+.arch-step.be .as-tag { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.25); }
+.arch-step.db .as-num { background: rgba(251,146,60,.2); color: var(--orange); }
+.arch-step.db .as-tag { background: rgba(251,146,60,.1); color: var(--orange); border: 1px solid rgba(251,146,60,.25); }
+.arch-step.rt .as-num { background: rgba(74,222,128,.2); color: var(--green); }
+.arch-step.rt .as-tag { background: rgba(74,222,128,.1); color: var(--green); border: 1px solid rgba(74,222,128,.25); }
+.arch-down { display: flex; align-items: center; justify-content: center; gap: .4rem; font-size: .58rem; color: rgba(255,255,255,.22); letter-spacing: .06em; padding: 0 1rem; }
+.arch-down::before, .arch-down::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); }
+.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; width: 100%; margin-top: 1.2rem; }
+.stack-group { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; }
+.sg-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; }
+.sg-title { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--accent); }
+.tech-pill { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 5px; padding: .22rem .55rem; font-size: .71rem; margin: .18rem; }
+.tech-pill .dp { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.timeline { display: flex; flex-direction: column; gap: .6rem; width: 100%; margin-top: 1.2rem; }
+.tl-item { display: flex; align-items: flex-start; gap: 1rem; }
+.tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--sky); flex-shrink: 0; margin-top: .35rem; box-shadow: 0 0 8px rgba(14,165,233,.5); }
+.tl-line { width: 1px; background: rgba(14,165,233,.2); flex-shrink: 0; align-self: stretch; margin-left: 4.5px; }
+.tl-content h4 { font-size: .9rem; font-weight: 700; margin-bottom: .15rem; }
+.tl-content p { font-size: .77rem; color: var(--muted); line-height: 1.5; }
+.impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; margin-top: 1.2rem; }
+.impact-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.4rem; }
+.impact-card h4 { font-size: .95rem; font-weight: 700; margin-bottom: .85rem; display: flex; align-items: center; gap: .5rem; }
+.impact-card h4 svg { color: var(--accent); }
+#s12 { gap: .8rem; }
+.big-logo { width: 110px; height: 110px; border-radius: 28px; background: linear-gradient(135deg, var(--sky-dark), var(--sky-light)); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 70px rgba(14,165,233,.45); animation: float 3.5s ease-in-out infinite; }
+#s12 h1, #s12 .tagline { text-align: center; }
+#s12 .tagline { font-size: 1.25rem; color: var(--muted); }
+#s12 .feat-badges { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-top: .8rem; }
+.fb { display: flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 50px; padding: .35rem .9rem; font-size: .77rem; color: var(--muted); }
+.fb svg { color: var(--accent); }
+#s12 .credit { font-size: .72rem; color: rgba(255,255,255,.17); margin-top: 1.2rem; }
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="key-hint">&#8592; &#8594; Arrow keys</div>
+<div class="deck" id="deck">
+
+<section class="slide active" id="s1">
+  <div class="logo-ring"><i data-lucide="network" style="width:46px;height:46px;color:white;stroke-width:1.7"></i></div>
+  <div class="badge"><span class="pulse-dot"></span>Internship Project · PT Telkom Indonesia</div>
+  <h1 class="gradient-text">recMe</h1>
+  <p class="subtitle">Real-time Network Monitoring Platform</p>
+  <div class="divider"></div>
+  <p class="lead">Platform web real-time untuk memvisualisasikan, memantau, dan mengkonfigurasi topologi jaringan secara interaktif — di-deploy di 10+ kota bersama PT Telkom Indonesia.</p>
+  <div class="telkom-badge"><i data-lucide="building-2" style="width:13px;height:13px;color:#7dd3fc"></i> PT Telkom Indonesia &mdash; Regional Jawa Timur</div>
+  <div class="tags" style="margin-top:1.5rem;display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center">
+    <span class="tag"><i data-lucide="layers" style="width:13px;height:13px"></i> React &middot; TypeScript</span>
+    <span class="tag"><i data-lucide="zap" style="width:13px;height:13px"></i> WebSocket Real-time</span>
+    <span class="tag"><i data-lucide="server" style="width:13px;height:13px"></i> Laravel &middot; PHP</span>
+    <span class="tag"><i data-lucide="database" style="width:13px;height:13px"></i> MySQL</span>
+    <span class="tag"><i data-lucide="move" style="width:13px;height:13px"></i> Drag &amp; Drop Canvas</span>
+  </div>
+</section>
+
+<section class="slide" id="s2">
+  <div class="badge">Overview</div>
+  <h2 class="gradient-text">Project Overview</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">recMe adalah <strong style="color:white">platform monitoring jaringan berbasis web</strong> yang memungkinkan engineer Telkom memvisualisasikan dan mengelola topologi jaringan secara real-time. Platform ini digunakan aktif di <strong style="color:white">10+ kota di Jawa Timur</strong>.</p>
+      <br>
+      <p class="lead-left">Platform menggabungkan <strong style="color:white">canvas interaktif drag-and-drop</strong> untuk konfigurasi topologi, sinkronisasi <strong style="color:white">WebSocket real-time</strong> antar pengguna, dan dashboard status perangkat yang terus diperbarui otomatis.</p>
+      <div class="stats">
+        <div class="stat"><div class="num">10+</div><div class="lbl">Kota Di-deploy</div></div>
+        <div class="stat"><div class="num">100+</div><div class="lbl">Topologi Jaringan</div></div>
+        <div class="stat"><div class="num">&lt;1s</div><div class="lbl">Latency Sync</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card"><div class="card-icon" style="background:rgba(14,165,233,.12)"><i data-lucide="monitor" style="width:18px;height:18px;color:var(--accent)"></i></div><h4>Real-time Monitoring</h4><p>Status perangkat dan perubahan topologi tersinkronisasi secara langsung antar semua pengguna melalui WebSocket — tanpa perlu refresh halaman.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(239,68,68,.12)"><i data-lucide="move" style="width:18px;height:18px;color:var(--red)"></i></div><h4>Interactive Topology Canvas</h4><p>Peta jaringan interaktif dengan drag-and-drop untuk memindahkan node, auto-layout engine, dan rendering 100+ topologi yang berbeda.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(74,222,128,.12)"><i data-lucide="save" style="width:18px;height:18px;color:var(--green)"></i></div><h4>Auto-save Configuration</h4><p>Semua perubahan konfigurasi tersimpan otomatis tanpa perlu menekan tombol save — latensi penyimpanan di bawah 1 detik.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s3">
+  <div class="badge">My Contribution</div>
+  <h2 class="gradient-text">Peran Saya — Frontend Developer</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Dalam project ini saya berperan sebagai <strong style="color:white">Frontend Developer</strong> yang membangun antarmuka platform monitoring dari awal. Fokus utama saya adalah <strong style="color:white">canvas topologi interaktif</strong> dan integrasi WebSocket untuk pembaruan real-time.</p>
+      <br>
+      <p class="lead-left">Saya bertanggung jawab atas keseluruhan layer frontend — dari desain komponen hingga state management dan komunikasi real-time dengan backend Laravel.</p>
+      <div class="check-list" style="margin-top:1.2rem">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Membangun canvas topologi drag-and-drop dengan React</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Implementasi WebSocket client untuk sinkronisasi real-time</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Auto-save mechanism dan conflict resolution</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Dashboard status perangkat dan feed alert</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Rendering 100+ topologi jaringan yang berbeda</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Kolaborasi dengan tim backend untuk desain API endpoint</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div class="contrib-card"><div class="ci"><i data-lucide="move" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>Topology Canvas</h4><p>Komponen React interaktif untuk drag-and-drop node jaringan, auto-layout, dan rendering topologi kompleks — dibangun dari scratch tanpa library diagram eksternal.</p></div></div>
+      <div class="contrib-card"><div class="ci"><i data-lucide="zap" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>WebSocket Integration</h4><p>Client WebSocket dengan reconnect logic, event deduplication, dan optimistic UI updates untuk menjaga sinkronisasi antar pengguna di kota berbeda.</p></div></div>
+      <div class="contrib-card"><div class="ci"><i data-lucide="activity" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>Device Status Dashboard</h4><p>Real-time feed status perangkat per topologi dengan sistem alert berbasis threshold — engineer dapat memantau kondisi jaringan sekilas.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s4">
+  <div class="badge">Problem Statement</div>
+  <h2 class="gradient-text">Tantangan Network Monitoring Telkom</h2>
+  <div class="divider"></div>
+  <p class="lead" style="margin-bottom:1.5rem">Tim Telkom di Jawa Timur memerlukan cara yang lebih efisien untuk memantau ratusan topologi jaringan aktif yang tersebar di banyak kota — dengan update status perangkat yang real-time dan konfigurasi yang mudah diubah.</p>
+  <div class="metric-grid">
+    <div class="metric-card sky"><div class="mnum">100+</div><div class="mlbl">Topologi jaringan aktif yang perlu dipantau secara bersamaan</div></div>
+    <div class="metric-card green"><div class="mnum">10+</div><div class="mlbl">Kota di Jawa Timur dalam cakupan monitoring platform</div></div>
+    <div class="metric-card purple"><div class="mnum">Manual</div><div class="mlbl">Proses konfigurasi sebelumnya — memerlukan tool terpisah dan sering tidak sinkron</div></div>
+    <div class="metric-card orange"><div class="mnum">0</div><div class="mlbl">Platform terpadu sebelum recMe — monitoring terfragmentasi per kota</div></div>
+  </div>
+  <div style="margin-top:1.4rem;padding:1rem 1.5rem;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.2);border-radius:12px;max-width:720px;text-align:center">
+    <p style="font-size:.85rem;color:var(--muted);line-height:1.6"><strong style="color:white">Solusi recMe:</strong> Platform web terpadu dengan canvas interaktif dan sinkronisasi WebSocket — engineer dapat memantau dan mengkonfigurasi topologi dari satu antarmuka, dengan perubahan tersinkronisasi real-time ke semua pengguna.</p>
+  </div>
+</section>
+
+<section class="slide" id="s5">
+  <div class="badge">Key Features</div>
+  <h2 class="gradient-text">Fitur Utama Platform</h2>
+  <div class="divider"></div>
+  <div class="feature-grid">
+    <div class="card">
+      <div class="card-icon" style="background:rgba(14,165,233,.12)"><i data-lucide="activity" style="width:18px;height:18px;color:var(--accent)"></i></div>
+      <h4>Real-time Network Sync</h4>
+      <p>Setiap perubahan pada topologi — penambahan node, perubahan koneksi, update status — tersinkronisasi secara instan ke semua pengguna yang terhubung melalui WebSocket.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(74,222,128,.12)"><i data-lucide="move" style="width:18px;height:18px;color:var(--green)"></i></div>
+      <h4>Drag &amp; Drop Topology Canvas</h4>
+      <p>Canvas interaktif untuk memindahkan dan mengatur node jaringan, dengan auto-layout engine yang secara otomatis menyesuaikan posisi node untuk keterbacaan optimal.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(251,146,60,.12)"><i data-lucide="save" style="width:18px;height:18px;color:var(--orange)"></i></div>
+      <h4>Auto-save Configuration</h4>
+      <p>Perubahan konfigurasi tersimpan otomatis dalam under 1 detik tanpa tindakan manual dari pengguna — mengurangi risiko kehilangan konfigurasi.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(167,139,250,.12)"><i data-lucide="bell" style="width:18px;height:18px;color:var(--purple)"></i></div>
+      <h4>Device Status Feed</h4>
+      <p>Dashboard status per-perangkat dengan sistem alert real-time — engineer dapat melihat kondisi jaringan di seluruh kota dalam satu tampilan terpadu.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(34,211,238,.12)"><i data-lucide="layout-dashboard" style="width:18px;height:18px;color:var(--cyan)"></i></div>
+      <h4>Multi-topology Management</h4>
+      <p>Kelola 100+ topologi berbeda dari satu antarmuka — dengan navigasi cepat, pencarian topologi, dan filter berdasarkan lokasi atau status.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:rgba(96,165,250,.12)"><i data-lucide="users" style="width:18px;height:18px;color:var(--blue)"></i></div>
+      <h4>Multi-user Collaboration</h4>
+      <p>Multiple engineer dapat mengakses dan mengedit topologi yang sama secara bersamaan — dengan conflict resolution untuk mencegah penimpaan perubahan.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s6">
+  <div class="badge">Architecture</div>
+  <h2 class="gradient-text">Arsitektur Sistem</h2>
+  <div class="divider"></div>
+  <p class="lead-left" style="text-align:center;margin-bottom:.8rem">Arsitektur full-stack dengan React frontend, WebSocket server untuk real-time sync, Laravel REST API, dan MySQL sebagai persistent storage.</p>
+  <div class="arch-flow">
+    <div class="arch-step fe">
+      <div class="as-num">1</div>
+      <div class="as-body">
+        <strong>Browser &mdash; React + TypeScript</strong>
+        <span>Canvas drag-and-drop, WebSocket client, state management, real-time UI updates &mdash; tanpa refresh halaman</span>
+      </div>
+      <div class="as-tag">Frontend</div>
+    </div>
+    <div class="arch-down">WebSocket bidirectional</div>
+    <div class="arch-step rt">
+      <div class="as-num">2</div>
+      <div class="as-body">
+        <strong>WebSocket Server &mdash; Node.js</strong>
+        <span>Event broadcasting ke semua connected clients, room-based messaging per topologi, reconnect handling</span>
+      </div>
+      <div class="as-tag">Real-time</div>
+    </div>
+    <div class="arch-down">REST API calls</div>
+    <div class="arch-step be">
+      <div class="as-num">3</div>
+      <div class="as-body">
+        <strong>Laravel API &mdash; PHP / REST</strong>
+        <span>Business logic, autentikasi, validasi, dan operasi CRUD topologi &mdash; endpoint terstruktur per resource</span>
+      </div>
+      <div class="as-tag">Backend</div>
+    </div>
+    <div class="arch-down">SQL queries</div>
+    <div class="arch-step db">
+      <div class="as-num">4</div>
+      <div class="as-body">
+        <strong>MySQL Database &mdash; Relational</strong>
+        <span>Persistent storage topologi, konfigurasi node, status perangkat, dan riwayat perubahan</span>
+      </div>
+      <div class="as-tag">Database</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s7">
+  <div class="badge">Tech Stack</div>
+  <h2 class="gradient-text">Technology Stack</h2>
+  <div class="divider"></div>
+  <div class="stack-grid">
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="layers" style="width:16px;height:16px;color:var(--accent)"></i><span class="sg-title">Frontend</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp"></span>React 18</span>
+        <span class="tech-pill"><span class="dp"></span>TypeScript</span>
+        <span class="tech-pill"><span class="dp"></span>Vite</span>
+        <span class="tech-pill"><span class="dp"></span>Tailwind CSS</span>
+        <span class="tech-pill"><span class="dp"></span>Canvas API</span>
+        <span class="tech-pill"><span class="dp"></span>React Query</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="zap" style="width:16px;height:16px;color:var(--green)"></i><span class="sg-title" style="color:var(--green)">Real-time</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp" style="background:var(--green)"></span>WebSocket</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--green)"></span>Node.js</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--green)"></span>Socket.io</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--green)"></span>Event Emitter</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="server" style="width:16px;height:16px;color:var(--red)"></i><span class="sg-title" style="color:var(--red)">Backend</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp" style="background:var(--red)"></span>Laravel 10</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--red)"></span>PHP 8.2</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--red)"></span>REST API</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--red)"></span>MySQL</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--red)"></span>Eloquent ORM</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;padding:1.2rem 1.5rem;background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:12px;max-width:680px;text-align:center">
+    <p style="font-size:.82rem;color:var(--muted);line-height:1.6">Stack dipilih untuk menjamin <strong style="color:white">performa real-time</strong> (WebSocket + Node.js), kemudahan maintenance backend oleh tim internal Telkom (Laravel/PHP), dan fleksibilitas UI yang tinggi (React + TypeScript).</p>
+  </div>
+</section>
+
+<section class="slide" id="s8">
+  <div class="badge">Real-time Flow</div>
+  <h2 class="gradient-text">Bagaimana Real-time Sync Bekerja</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Setiap aksi pengguna pada canvas &mdash; memindahkan node, mengubah koneksi, mengedit label &mdash; langsung dikirim ke WebSocket server. Server mem-broadcast perubahan ke semua client yang terhubung ke topologi yang sama.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Optimistic UI</strong> — perubahan langsung terlihat di browser pengguna sebelum konfirmasi server</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Room-based messaging</strong> — broadcast hanya ke pengguna pada topologi yang sama</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Reconnect handling</strong> — client otomatis reconnect jika koneksi terputus</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Auto-save &lt;1s</strong> — perubahan dipersist ke MySQL segera setelah broadcast</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Event deduplication mencegah double-processing pada rapid input</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div class="contrib-card"><div class="ci"><i data-lucide="mouse-pointer-2" style="width:18px;height:18px;color:var(--accent)"></i></div><div class="ct"><h4>User Action</h4><p>Engineer memindahkan node di canvas &rarr; event dikirim via WebSocket dengan payload minimal (node ID + posisi baru)</p></div></div>
+      <div class="contrib-card"><div class="ci"><i data-lucide="radio" style="width:18px;height:18px;color:var(--green)"></i></div><div class="ct"><h4>Server Broadcast</h4><p>Node.js server menerima event, memvalidasi, lalu mem-broadcast ke semua client di room topologi yang sama &mdash; latency &lt;50ms</p></div></div>
+      <div class="contrib-card"><div class="ci"><i data-lucide="save" style="width:18px;height:18px;color:var(--orange)"></i></div><div class="ct"><h4>Persist to DB</h4><p>Laravel API menyimpan perubahan ke MySQL via Eloquent ORM &mdash; dipicu oleh WebSocket server setelah broadcast sukses</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s9">
+  <div class="badge">Canvas Implementation</div>
+  <h2 class="gradient-text">Topology Canvas &mdash; Implementasi</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Canvas topologi adalah komponen React yang paling kompleks dalam platform ini. Dibangun menggunakan <strong style="color:white">Canvas API HTML5</strong> dengan layer rendering terpisah untuk node, edge, dan overlay interaktif.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Double-buffered rendering</strong> — smooth 60fps bahkan dengan 100+ node</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Viewport culling</strong> — hanya render node yang terlihat di viewport</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Auto-layout engine</strong> — force-directed algorithm untuk posisi awal node</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Snap to grid</strong> — node tertarik ke grid saat didrop untuk kerapian layout</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Edge routing</strong> — garis koneksi otomatis menghindari node lain</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div style="background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.18);border-radius:12px;padding:1.1rem">
+        <div style="font-size:.64rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.65rem">Rendering Pipeline</div>
+        <div style="display:flex;flex-direction:column;gap:.35rem">
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted)"><span style="color:var(--sky-light);font-weight:700">1.</span> Calculate viewport bounds</div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted)"><span style="color:var(--sky-light);font-weight:700">2.</span> Cull off-screen nodes &amp; edges</div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted)"><span style="color:var(--sky-light);font-weight:700">3.</span> Render edges on back layer</div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted)"><span style="color:var(--sky-light);font-weight:700">4.</span> Render nodes on front layer</div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted)"><span style="color:var(--sky-light);font-weight:700">5.</span> Render interaction overlay (hover, selection)</div>
+          <div style="display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted)"><span style="color:var(--sky-light);font-weight:700">6.</span> requestAnimationFrame loop</div>
+        </div>
+      </div>
+      <div style="background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.15);border-radius:12px;padding:1.1rem">
+        <div style="font-size:.64rem;color:var(--green);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">Performance Target</div>
+        <p style="font-size:.75rem;color:var(--muted);line-height:1.5">60fps rendering dengan 100+ node &amp; 200+ edge aktif di canvas. Viewport culling memotong render cost hingga 70% pada topologi besar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s10">
+  <div class="badge">Deployment</div>
+  <h2 class="gradient-text">Production Deployment</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Platform di-deploy ke lingkungan produksi internal Telkom dan digunakan aktif oleh tim engineering di seluruh wilayah Jawa Timur selama masa internship berlangsung.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">100% uptime</strong> selama 3 bulan masa observasi</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">10+ kota</strong> terhubung dalam satu platform terpadu</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Digunakan oleh engineer jaringan Telkom setiap hari</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Menggantikan proses monitoring manual yang terfragmentasi</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Zero data loss berkat auto-save dan persistent WebSocket events</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="num">100%</div><div class="lbl">Uptime (3 bulan)</div></div>
+        <div class="stat"><div class="num">128</div><div class="lbl">Device Synced</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card"><div class="card-icon" style="background:rgba(74,222,128,.12)"><i data-lucide="shield-check" style="width:18px;height:18px;color:var(--green)"></i></div><h4>Production Stability</h4><p>Platform berjalan stabil di lingkungan produksi Telkom. Reconnect logic WebSocket memastikan tidak ada downtime akibat koneksi yang terputus.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(14,165,233,.12)"><i data-lucide="globe" style="width:18px;height:18px;color:var(--accent)"></i></div><h4>Multi-city Reach</h4><p>Engineer dari 10+ kota di Jawa Timur mengakses platform yang sama secara bersamaan — dengan topologi yang tersinkronisasi real-time.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(251,146,60,.12)"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--orange)"></i></div><h4>Operational Impact</h4><p>Mengurangi waktu konfigurasi topologi secara signifikan dibandingkan metode sebelumnya yang manual dan tidak tersinkronisasi.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s11">
+  <div class="badge">Key Learnings</div>
+  <h2 class="gradient-text">Pembelajaran &amp; Tantangan</h2>
+  <div class="divider"></div>
+  <div class="impact-grid">
+    <div class="impact-card">
+      <h4><i data-lucide="zap" style="width:16px;height:16px"></i> WebSocket at Scale</h4>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Room-based broadcasting mencegah message flooding ke client yang tidak relevan</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Payload minimization — hanya kirim delta, bukan full state, untuk performa optimal</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Heartbeat mechanism untuk mendeteksi dan memulihkan koneksi zombie</div>
+      </div>
+    </div>
+    <div class="impact-card">
+      <h4><i data-lucide="move" style="width:16px;height:16px"></i> Canvas Performance</h4>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Viewport culling adalah optimisasi terpenting &mdash; impact langsung pada frame rate</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> requestAnimationFrame loop lebih efisien dari setInterval untuk rendering</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Debounce drag events sebelum dikirim ke WebSocket mencegah flooding</div>
+      </div>
+    </div>
+    <div class="impact-card">
+      <h4><i data-lucide="users" style="width:16px;height:16px"></i> Multi-user Collaboration</h4>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Optimistic UI dengan rollback saat server menolak perubahan</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Last-write-wins strategy untuk conflict resolution pada edit bersamaan</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Visual indicator untuk menunjukkan siapa sedang aktif di topologi yang sama</div>
+      </div>
+    </div>
+    <div class="impact-card">
+      <h4><i data-lucide="building-2" style="width:16px;height:16px"></i> Enterprise Context</h4>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Bekerja langsung di lingkungan production enterprise dengan real users</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Memahami kebutuhan monitoring jaringan dari perspektif operasional ISP</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Pentingnya backwards compatibility saat merilis fitur baru ke production</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s12">
+  <div class="big-logo"><i data-lucide="network" style="width:54px;height:54px;color:white;stroke-width:1.7"></i></div>
+  <div class="badge"><span class="pulse-dot"></span>Live · PT Telkom Indonesia</div>
+  <h1 class="gradient-text">recMe</h1>
+  <p class="tagline">Menghubungkan 10+ kota dalam satu platform monitoring</p>
+  <div class="feat-badges">
+    <div class="fb"><i data-lucide="activity" style="width:13px;height:13px"></i> Real-time WebSocket</div>
+    <div class="fb"><i data-lucide="move" style="width:13px;height:13px"></i> Drag &amp; Drop Canvas</div>
+    <div class="fb"><i data-lucide="save" style="width:13px;height:13px"></i> Auto-save &lt;1s</div>
+    <div class="fb"><i data-lucide="globe" style="width:13px;height:13px"></i> 10+ Kota</div>
+    <div class="fb"><i data-lucide="shield-check" style="width:13px;height:13px"></i> 100% Uptime</div>
+  </div>
+  <p class="credit">React &middot; TypeScript &middot; WebSocket &middot; Laravel &middot; MySQL &middot; PT Telkom Indonesia</p>
+</section>
+
+</div>
+<nav class="nav">
+  <button id="prevBtn"><i data-lucide="chevron-left" style="width:18px;height:18px"></i></button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter"></span>
+  <button id="nextBtn"><i data-lucide="chevron-right" style="width:18px;height:18px"></i></button>
+</nav>
+<script>
+const slides = document.querySelectorAll('.slide');
+const dots = document.getElementById('dots');
+const counter = document.getElementById('counter');
+const bar = document.getElementById('progressBar');
+let cur = 0;
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => go(i);
+  dots.appendChild(d);
+});
+function go(n) {
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('exit');
+  setTimeout(() => slides[cur < n ? cur : n + 1 < slides.length ? cur : cur].classList.remove('exit'), 450);
+  const prev = cur;
+  setTimeout(() => slides[prev].classList.remove('exit'), 450);
+  cur = n;
+  slides[cur].classList.add('active');
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+  counter.textContent = (cur + 1) + ' / ' + slides.length;
+  bar.style.width = ((cur + 1) / slides.length * 100) + '%';
+}
+function next() { if (cur < slides.length - 1) go(cur + 1); }
+function prev() { if (cur > 0) go(cur - 1); }
+document.getElementById('nextBtn').onclick = next;
+document.getElementById('prevBtn').onclick = prev;
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') next(); if (e.key === 'ArrowLeft') prev(); });
+go(0);
+lucide.createIcons();
+</script>
+</body>
+</html>

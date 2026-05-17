@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Forecasting — GRU-Based Deep Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --purple: #a855f7; --purple-light: #c084fc; --purple-dark: #6b21a8;
+  --purple-glow: rgba(168,85,247,.35); --bg: #0a0a0f;
+  --surface: rgba(255,255,255,.045); --border: rgba(255,255,255,.08);
+  --text: #f0f0f5; --muted: rgba(240,240,245,.5); --accent: #c084fc;
+  --cyan: #22d3ee; --blue: #60a5fa; --rose: #f472b6; --orange: #fb923c;
+  --green: #4ade80; --yellow: #facc15;
+}
+html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+.deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 3.5rem 5.5rem;
+  opacity: 0; transform: translateX(60px);
+  transition: opacity .45s ease, transform .45s ease;
+  pointer-events: none;
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.exit   { opacity: 0; transform: translateX(-60px); }
+.slide::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 20%, rgba(168,85,247,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(168,85,247,.07) 0%, transparent 70%),
+    var(--bg);
+}
+.slide::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.nav {
+  position: fixed; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 1rem; z-index: 100;
+  background: rgba(255,255,255,.06); backdrop-filter: blur(20px);
+  border: 1px solid var(--border); border-radius: 50px; padding: .55rem 1.3rem;
+}
+.nav button { background: none; border: none; color: var(--text); font-size: 1.1rem; cursor: pointer; padding: .25rem .6rem; border-radius: 50px; transition: background .2s; display: flex; align-items: center; }
+.nav button:hover { background: rgba(168,85,247,.25); }
+.nav .counter { font-size: .8rem; color: var(--muted); min-width: 48px; text-align: center; }
+.nav .dots { display: flex; gap: .4rem; }
+.nav .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.22); cursor: pointer; transition: all .2s; }
+.nav .dot.active { background: var(--purple); width: 18px; border-radius: 3px; }
+.progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--purple-dark), var(--purple-light)); transition: width .4s ease; z-index: 200; }
+.key-hint { position: fixed; top: 1.4rem; right: 2rem; font-size: .7rem; color: rgba(255,255,255,.18); letter-spacing: .03em; }
+.badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(168,85,247,.15); border: 1px solid rgba(168,85,247,.35);
+  color: #d8b4fe; font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  padding: .28rem .85rem; border-radius: 50px; text-transform: uppercase; margin-bottom: 1rem;
+}
+.pulse-dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; animation: pulse 1.6s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+h1 { font-size: 3.8rem; font-weight: 800; line-height: 1.1; }
+h2 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; }
+h3 { font-size: 1.4rem; font-weight: 600; }
+.gradient-text { background: linear-gradient(135deg, #fff 20%, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.divider { width: 56px; height: 3px; background: linear-gradient(90deg, var(--purple), transparent); border-radius: 2px; margin: 1.2rem auto; }
+.lead { font-size: 1.1rem; color: var(--muted); line-height: 1.7; max-width: 620px; text-align: center; }
+.lead-left { font-size: 1rem; color: var(--muted); line-height: 1.7; }
+.tag { display: flex; align-items: center; gap: .4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 50px; padding: .35rem .9rem; font-size: .77rem; color: var(--muted); }
+.tag svg { color: var(--accent); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.3rem; backdrop-filter: blur(10px); transition: border-color .25s, transform .25s; }
+.card:hover { border-color: rgba(168,85,247,.4); transform: translateY(-2px); }
+.card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: .7rem; }
+.card h4 { font-size: .92rem; font-weight: 700; margin-bottom: .3rem; }
+.card p { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; width: 100%; margin-top: 1rem; align-items: start; }
+.stats { display: flex; gap: 2.5rem; margin-top: 1.5rem; }
+.stat .num { font-size: 2.6rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.stat .lbl { font-size: .72rem; color: var(--muted); margin-top: .25rem; }
+.check-list { display: flex; flex-direction: column; gap: .38rem; margin-top: .6rem; }
+.check-item { display: flex; align-items: flex-start; gap: .55rem; font-size: .82rem; color: var(--muted); line-height: 1.5; }
+.check-item svg.ok { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+.check-item svg.info { color: var(--cyan); flex-shrink: 0; margin-top: 2px; }
+#s1 { gap: .6rem; }
+.logo-ring {
+  width: 92px; height: 92px; border-radius: 22px;
+  background: linear-gradient(135deg, var(--purple-dark), var(--purple-light));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 55px var(--purple-glow); margin-bottom: 1rem;
+  animation: float 3.5s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+#s1 h1 { text-align: center; }
+#s1 .subtitle { font-size: 1.15rem; color: var(--muted); text-align: center; margin-top: .4rem; }
+.model-compare { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; width: 100%; margin-top: 1.2rem; }
+.mc { border-radius: 14px; padding: 1.2rem 1rem; border: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: .4rem; position: relative; transition: border-color .2s, transform .2s; }
+.mc:hover { transform: translateY(-2px); }
+.mc.best { border-color: rgba(168,85,247,.55); background: rgba(168,85,247,.06); }
+.mc.best::before { content: '&#9733; Best'; position: absolute; top: .6rem; right: .6rem; background: rgba(168,85,247,.2); border: 1px solid rgba(168,85,247,.4); color: var(--accent); font-size: .58rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border-radius: 50px; padding: .18rem .55rem; }
+.mc h4 { font-size: .95rem; font-weight: 800; }
+.mc .mc-type { font-size: .65rem; color: var(--muted); margin-bottom: .2rem; }
+.mc .mc-desc { font-size: .73rem; color: var(--muted); line-height: 1.4; }
+.mc .mc-score { font-size: .72rem; margin-top: .3rem; }
+.pipeline-flow { width: 100%; margin-top: .8rem; display: flex; align-items: center; gap: .4rem; flex-wrap: nowrap; overflow-x: auto; }
+.pf-step { border-radius: 10px; padding: .65rem .9rem; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 90px; flex-shrink: 0; }
+.pf-step .ps-label { font-size: .75rem; font-weight: 800; line-height: 1.2; }
+.pf-step .ps-sub { font-size: .6rem; color: var(--muted); margin-top: .15rem; line-height: 1.3; }
+.pf-step .ps-tag { font-size: .5rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: .08rem .38rem; margin-bottom: .2rem; }
+.pf-arrow { font-size: .7rem; color: rgba(255,255,255,.2); flex-shrink: 0; }
+.pf-step.data .ps-tag { background: rgba(250,204,21,.15); color: var(--yellow); }
+.pf-step.proc .ps-tag { background: rgba(96,165,250,.15); color: var(--blue); }
+.pf-step.model .ps-tag { background: rgba(168,85,247,.18); color: var(--accent); }
+.pf-step.out .ps-tag { background: rgba(74,222,128,.15); color: var(--green); }
+.stack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; width: 100%; margin-top: 1.2rem; }
+.stack-group { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; }
+.sg-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; }
+.sg-title { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--accent); }
+.tech-pill { display: inline-flex; align-items: center; gap: .3rem; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 5px; padding: .22rem .55rem; font-size: .71rem; margin: .18rem; }
+.tech-pill .dp { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.result-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; width: 100%; margin-top: 1.2rem; }
+.result-card { border-radius: 14px; padding: 1.4rem 1rem; text-align: center; }
+.result-card .rnum { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: .3rem; }
+.result-card .rlbl { font-size: .78rem; color: var(--muted); line-height: 1.4; }
+.result-card.purple-c { background: rgba(168,85,247,.08); border: 1px solid rgba(168,85,247,.22); }
+.result-card.purple-c .rnum { color: var(--purple-light); }
+.result-card.yellow { background: rgba(250,204,21,.07); border: 1px solid rgba(250,204,21,.2); }
+.result-card.yellow .rnum { color: var(--yellow); }
+.result-card.green { background: rgba(74,222,128,.07); border: 1px solid rgba(74,222,128,.2); }
+.result-card.green .rnum { color: var(--green); }
+.result-card.cyan { background: rgba(34,211,238,.07); border: 1px solid rgba(34,211,238,.2); }
+.result-card.cyan .rnum { color: var(--cyan); }
+#s10 { gap: .8rem; }
+.big-logo { width: 110px; height: 110px; border-radius: 28px; background: linear-gradient(135deg, var(--purple-dark), var(--purple-light)); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 70px rgba(168,85,247,.45); animation: float 3.5s ease-in-out infinite; }
+#s10 h1, #s10 .tagline { text-align: center; }
+#s10 .tagline { font-size: 1.25rem; color: var(--muted); }
+#s10 .feat-badges { display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center; margin-top: .8rem; }
+.fb { display: flex; align-items: center; gap: .4rem; background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 50px; padding: .35rem .9rem; font-size: .77rem; color: var(--muted); }
+.fb svg { color: var(--accent); }
+#s10 .credit { font-size: .72rem; color: rgba(255,255,255,.17); margin-top: 1.2rem; }
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="key-hint">&#8592; &#8594; Arrow keys</div>
+<div class="deck" id="deck">
+
+<section class="slide active" id="s1">
+  <div class="logo-ring"><i data-lucide="trending-up" style="width:46px;height:46px;color:white;stroke-width:1.7"></i></div>
+  <div class="badge"><span class="pulse-dot"></span>Personal Research · Time Series</div>
+  <h1 class="gradient-text">Stock Forecasting</h1>
+  <p class="subtitle">GRU-Based Deep Learning untuk Prediksi Saham Indonesia</p>
+  <div class="divider"></div>
+  <p class="lead">Studi komparatif arsitektur GRU untuk prediksi harga saham sektor teknologi Indonesia (BBCA) &mdash; custom TF-BIGRU dan TFGRUGRU outperform baseline GRU pada train dan test.</p>
+  <div style="margin-top:1.5rem;display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center">
+    <span class="tag"><i data-lucide="brain" style="width:13px;height:13px"></i> GRU &middot; LSTM</span>
+    <span class="tag"><i data-lucide="repeat-2" style="width:13px;height:13px"></i> Bidirectional RNN</span>
+    <span class="tag"><i data-lucide="activity" style="width:13px;height:13px"></i> OHLCV Time Series</span>
+    <span class="tag"><i data-lucide="bar-chart-2" style="width:13px;height:13px"></i> MSE &middot; MAE Evaluation</span>
+    <span class="tag"><i data-lucide="layers" style="width:13px;height:13px"></i> TensorFlow &middot; Keras</span>
+  </div>
+</section>
+
+<section class="slide" id="s2">
+  <div class="badge">Overview</div>
+  <h2 class="gradient-text">Project Overview</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Penelitian ini menganalisis dan membandingkan <strong style="color:white">6+ arsitektur deep learning berbasis GRU</strong> untuk memprediksi harga saham sektor teknologi Indonesia, dengan fokus pada saham BBCA sebagai benchmark.</p>
+      <br>
+      <p class="lead-left">Dibandingkan arsitektur standar (Baseline GRU, Bidirectional GRU, Stacked GRU), dua <strong style="color:white">varian custom</strong> &mdash; <strong style="color:white">TF-BIGRU</strong> dan <strong style="color:white">TFGRUGRU</strong> &mdash; dirancang dan dievaluasi terhadap beberapa metrik time series forecasting.</p>
+      <div class="stats">
+        <div class="stat"><div class="num">6+</div><div class="lbl">Arsitektur</div></div>
+        <div class="stat"><div class="num">3500</div><div class="lbl">Trading Days</div></div>
+        <div class="stat"><div class="num">BBCA</div><div class="lbl">Saham Target</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card"><div class="card-icon" style="background:rgba(168,85,247,.12)"><i data-lucide="brain" style="width:18px;height:18px;color:var(--accent)"></i></div><h4>Multi-Architecture Comparison</h4><p>Baseline GRU, Bidirectional GRU, Stacked GRU, dan dua varian custom (TF-BIGRU &amp; TFGRUGRU) dilatih dan dievaluasi pada data OHLCV yang sama.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(250,204,21,.12)"><i data-lucide="settings-2" style="width:18px;height:18px;color:var(--yellow)"></i></div><h4>Custom GRU Variants</h4><p>TF-BIGRU dan TFGRUGRU dirancang untuk meningkatkan robustness prediksi melalui kombinasi mekanisme recurrent yang berbeda.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(74,222,128,.12)"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--green)"></i></div><h4>Financial Insight</h4><p>Analisis implikasi praktis perbedaan performa model untuk pengambilan keputusan investasi dan manajemen risiko.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s3">
+  <div class="badge">Motivation</div>
+  <h2 class="gradient-text">Mengapa Prediksi Harga Saham?</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Prediksi harga saham adalah salah satu aplikasi <strong style="color:white">time series forecasting</strong> yang paling menantang &mdash; data bersifat non-stasioner, noise tinggi, dan dipengaruhi faktor eksternal yang sulit dimodelkan.</p>
+      <br>
+      <p class="lead-left">Deep learning berbasis RNN, khususnya <strong style="color:white">GRU (Gated Recurrent Unit)</strong>, terbukti efektif menangkap dependensi temporal jangka panjang dalam data finansial dibanding model statistik klasik seperti ARIMA.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">BBCA</strong> dipilih sebagai benchmark &mdash; saham perbankan terbesar di Indonesia dengan data historis panjang</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">OHLCV</strong> (Open, High, Low, Close, Volume) sebagai fitur input multi-dimensi</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Fokus pada <strong style="color:white">evaluasi arsitektur</strong>, bukan strategi trading</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Model ini bersifat akademis &mdash; bukan financial advice</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.18);border-radius:14px;padding:1.3rem">
+        <div style="font-size:.65rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.7rem">GRU vs LSTM</div>
+        <div class="check-list" style="margin-top:0">
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">GRU</strong> lebih efisien &mdash; 2 gate (reset &amp; update) vs LSTM 3 gate</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Training lebih cepat dengan performa comparable pada sequence pendek</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Lebih robust terhadap gradient vanishing pada sequence panjang</div>
+        </div>
+      </div>
+      <div style="background:rgba(250,204,21,.05);border:1px solid rgba(250,204,21,.15);border-radius:12px;padding:.9rem">
+        <div style="font-size:.64rem;color:var(--yellow);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">BBCA Data</div>
+        <p style="font-size:.74rem;color:var(--muted);line-height:1.5">3,500+ hari perdagangan BBCA digunakan &mdash; train/test split 80/20 dengan MinMaxScaler normalization per fitur OHLCV.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s4">
+  <div class="badge">Pipeline</div>
+  <h2 class="gradient-text">Pipeline Forecasting</h2>
+  <div class="divider"></div>
+  <p class="lead-left" style="text-align:center;margin-bottom:1rem">Data OHLCV mentah diproses melalui normalisasi, windowing temporal, training model GRU, hingga prediksi dan evaluasi &mdash; dengan inverse scaling untuk mendapatkan harga aktual.</p>
+  <div class="pipeline-flow">
+    <div class="pf-step data"><span class="ps-tag">Data</span><div class="ps-label">OHLCV Raw</div><div class="ps-sub">BBCA historis 3500+ hari</div></div>
+    <div class="pf-arrow">&#8594;</div>
+    <div class="pf-step proc"><span class="ps-tag">Prep</span><div class="ps-label">Normalize</div><div class="ps-sub">MinMaxScaler per fitur</div></div>
+    <div class="pf-arrow">&#8594;</div>
+    <div class="pf-step proc"><span class="ps-tag">Prep</span><div class="ps-label">Windowing</div><div class="ps-sub">Sequence split (lookback)</div></div>
+    <div class="pf-arrow">&#8594;</div>
+    <div class="pf-step model"><span class="ps-tag">Model</span><div class="ps-label">GRU Variants</div><div class="ps-sub">Bi / Stack / TF-BIGRU / TFGRUGRU</div></div>
+    <div class="pf-arrow">&#8594;</div>
+    <div class="pf-step out"><span class="ps-tag">Output</span><div class="ps-label">Prediction</div><div class="ps-sub">Inverse scale ke harga</div></div>
+    <div class="pf-arrow">&#8594;</div>
+    <div class="pf-step out"><span class="ps-tag">Eval</span><div class="ps-label">Evaluation</div><div class="ps-sub">MSE, MAE, RMSE</div></div>
+  </div>
+  <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;width:100%">
+    <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.18);border-radius:12px;padding:1rem">
+      <div style="font-size:.64rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">MinMaxScaler</div>
+      <p style="font-size:.74rem;color:var(--muted);line-height:1.45">Setiap fitur OHLCV dinormalisasi ke [0,1] secara independen. Scaler di-fit hanya pada train set untuk mencegah data leakage.</p>
+    </div>
+    <div style="background:rgba(96,165,250,.05);border:1px solid rgba(96,165,250,.15);border-radius:12px;padding:1rem">
+      <div style="font-size:.64rem;color:var(--blue);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">Sequence Windowing</div>
+      <p style="font-size:.74rem;color:var(--muted);line-height:1.45">Sliding window menghasilkan (X, y) pairs: X = lookback sequence, y = harga Close hari berikutnya. Lookback window dioptimalkan per arsitektur.</p>
+    </div>
+    <div style="background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.15);border-radius:12px;padding:1rem">
+      <div style="font-size:.64rem;color:var(--green);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">Inverse Transform</div>
+      <p style="font-size:.74rem;color:var(--muted);line-height:1.45">Prediksi model di-inverse transform kembali ke skala harga asli sebelum evaluasi &mdash; MSE dan MAE dihitung dalam satuan rupiah.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s5">
+  <div class="badge">Architectures</div>
+  <h2 class="gradient-text">Perbandingan Arsitektur GRU</h2>
+  <div class="divider"></div>
+  <div class="model-compare">
+    <div class="mc">
+      <div class="mc-type">Baseline</div>
+      <h4>GRU</h4>
+      <div class="mc-desc">Single-layer GRU standard sebagai baseline. Gate reset dan update mengontrol flow informasi temporal.</div>
+      <div class="mc-score" style="color:var(--muted)">Referensi perbandingan semua arsitektur lain</div>
+    </div>
+    <div class="mc">
+      <div class="mc-type">Standard</div>
+      <h4>Bidirectional GRU</h4>
+      <div class="mc-desc">Memproses sequence maju dan mundur &mdash; menangkap konteks dari kedua arah temporal.</div>
+      <div class="mc-score" style="color:var(--cyan)">+Konteks backward sequence</div>
+    </div>
+    <div class="mc">
+      <div class="mc-type">Standard</div>
+      <h4>Stacked GRU</h4>
+      <div class="mc-desc">Multiple GRU layers bertumpuk &mdash; abstraksi fitur temporal yang lebih dalam per layer.</div>
+      <div class="mc-score" style="color:var(--blue)">+Deep temporal hierarchy</div>
+    </div>
+    <div class="mc best">
+      <div class="mc-type">Custom</div>
+      <h4>TF-BIGRU</h4>
+      <div class="mc-desc">Arsitektur custom yang menggabungkan mekanisme transformasi fitur dengan Bidirectional GRU untuk representasi yang lebih kaya.</div>
+      <div class="mc-score" style="color:var(--accent)">Outperforms baseline +12.4%</div>
+    </div>
+    <div class="mc best">
+      <div class="mc-type">Custom</div>
+      <h4>TFGRUGRU</h4>
+      <div class="mc-desc">Varian custom dengan stacking GRU yang diaugmentasi transformasi fitur &mdash; menyeimbangkan depth dan width representasi temporal.</div>
+      <div class="mc-score" style="color:var(--accent)">Konsisten outperform baseline</div>
+    </div>
+    <div class="mc" style="border-style:dashed;opacity:.6">
+      <div class="mc-type">Reference</div>
+      <h4>LSTM Baseline</h4>
+      <div class="mc-desc">LSTM digunakan sebagai referensi tambahan untuk memverifikasi keunggulan GRU variants dalam efisiensi training.</div>
+      <div class="mc-score" style="color:var(--muted)">Referensi cross-architecture</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s6">
+  <div class="badge">Custom Architectures</div>
+  <h2 class="gradient-text">TF-BIGRU &amp; TFGRUGRU &mdash; Detail</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left" style="margin-bottom:.8rem"><strong style="color:white">TF-BIGRU</strong> dirancang untuk menggabungkan feature transformation sebelum GRU bidirectional &mdash; memungkinkan model mengekstrak representasi yang lebih informatif sebelum masuk ke mekanisme recurrent.</p>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Feature transformation layer mengekstrak representasi awal</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Bidirectional GRU memproses forward &amp; backward context</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Dense head untuk proyeksi ke prediksi Close price</div>
+      </div>
+      <p class="lead-left" style="margin-top:1rem;margin-bottom:.8rem"><strong style="color:white">TFGRUGRU</strong> menggunakan dual GRU stack dengan layer transformasi di tengah &mdash; menciptakan representasi hierarkis yang lebih ekspresif.</p>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> First GRU layer: low-level temporal pattern extraction</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Transformation bridge antar GRU layer</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Second GRU layer: higher-order sequence modeling</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.18);border-radius:12px;padding:1.1rem">
+        <div style="font-size:.64rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.6rem">TF-BIGRU Flow</div>
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.72rem;color:var(--muted)">
+          <span style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:6px;padding:.2rem .5rem;color:var(--accent)">Input (OHLCV)</span>
+          <span>&#8594;</span>
+          <span style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:.2rem .5rem;color:var(--blue)">Transform</span>
+          <span>&#8594;</span>
+          <span style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:6px;padding:.2rem .5rem;color:var(--accent)">BiGRU</span>
+          <span>&#8594;</span>
+          <span style="background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:6px;padding:.2rem .5rem;color:var(--green)">Dense &#8594; Close</span>
+        </div>
+      </div>
+      <div style="background:rgba(250,204,21,.05);border:1px solid rgba(250,204,21,.15);border-radius:12px;padding:1.1rem">
+        <div style="font-size:.64rem;color:var(--yellow);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.6rem">TFGRUGRU Flow</div>
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.72rem;color:var(--muted)">
+          <span style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:6px;padding:.2rem .5rem;color:var(--accent)">Input</span>
+          <span>&#8594;</span>
+          <span style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:6px;padding:.2rem .5rem;color:var(--accent)">GRU 1</span>
+          <span>&#8594;</span>
+          <span style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:.2rem .5rem;color:var(--blue)">Transform</span>
+          <span>&#8594;</span>
+          <span style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);border-radius:6px;padding:.2rem .5rem;color:var(--accent)">GRU 2</span>
+          <span>&#8594;</span>
+          <span style="background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:6px;padding:.2rem .5rem;color:var(--green)">Dense</span>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.9rem">
+        <p style="font-size:.74rem;color:var(--muted);line-height:1.5"><strong style="color:white">Motivasi desain:</strong> Transformation layer bertindak sebagai bottleneck yang memaksa model mengkompresi informasi sebelum GRU &mdash; mengurangi noise dan meningkatkan generalisasi.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s7">
+  <div class="badge">Tech Stack</div>
+  <h2 class="gradient-text">Technology Stack</h2>
+  <div class="divider"></div>
+  <div class="stack-grid">
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="brain" style="width:16px;height:16px;color:var(--accent)"></i><span class="sg-title">Deep Learning</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp"></span>TensorFlow 2.x</span>
+        <span class="tech-pill"><span class="dp"></span>Keras</span>
+        <span class="tech-pill"><span class="dp"></span>GRU Layer</span>
+        <span class="tech-pill"><span class="dp"></span>Bidirectional</span>
+        <span class="tech-pill"><span class="dp"></span>Adam Optimizer</span>
+        <span class="tech-pill"><span class="dp"></span>MSE Loss</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="activity" style="width:16px;height:16px;color:var(--yellow)"></i><span class="sg-title" style="color:var(--yellow)">Data Processing</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp" style="background:var(--yellow)"></span>Pandas</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--yellow)"></span>NumPy</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--yellow)"></span>Scikit-learn</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--yellow)"></span>MinMaxScaler</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--yellow)"></span>yfinance</span>
+      </div>
+    </div>
+    <div class="stack-group">
+      <div class="sg-head"><i data-lucide="bar-chart-2" style="width:16px;height:16px;color:var(--green)"></i><span class="sg-title" style="color:var(--green)">Visualization</span></div>
+      <div>
+        <span class="tech-pill"><span class="dp" style="background:var(--green)"></span>Matplotlib</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--green)"></span>Seaborn</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--green)"></span>Jupyter Notebook</span>
+        <span class="tech-pill"><span class="dp" style="background:var(--green)"></span>Train/Test Plots</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;padding:1.2rem 1.5rem;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:12px;max-width:680px;text-align:center">
+    <p style="font-size:.82rem;color:var(--muted);line-height:1.6">Stack berbasis <strong style="color:white">pure Python ML ecosystem</strong> &mdash; pilihan deliberat untuk memudahkan reproduksi eksperimen dan perbandingan antar arsitektur dalam lingkungan Jupyter Notebook.</p>
+  </div>
+</section>
+
+<section class="slide" id="s8">
+  <div class="badge">Evaluation</div>
+  <h2 class="gradient-text">Metrik Evaluasi &amp; Hasil</h2>
+  <div class="divider"></div>
+  <div class="result-grid">
+    <div class="result-card purple-c"><div class="rnum">BBCA</div><div class="rlbl">Saham target benchmark &mdash; PT Bank Central Asia Tbk</div></div>
+    <div class="result-card yellow"><div class="rnum">6+</div><div class="rlbl">Arsitektur yang dibandingkan pada dataset yang sama</div></div>
+    <div class="result-card green"><div class="rnum">12.4%</div><div class="rlbl">Peningkatan TF-BIGRU vs baseline GRU pada test MSE</div></div>
+    <div class="result-card cyan"><div class="rnum">BiDir</div><div class="rlbl">Varian terbaik &mdash; Bidirectional approach konsisten unggul</div></div>
+  </div>
+  <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;width:100%">
+    <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.18);border-radius:12px;padding:1.2rem">
+      <div style="font-size:.65rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.7rem">Metrik Evaluasi</div>
+      <div class="check-list" style="margin-top:0">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">MSE</strong> (Mean Squared Error) &mdash; penalizes large errors</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">MAE</strong> (Mean Absolute Error) &mdash; average absolute deviation</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">RMSE</strong> &mdash; dalam satuan harga (rupiah) untuk interpretasi langsung</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Train &amp; test evaluation terpisah untuk deteksi overfitting</div>
+      </div>
+    </div>
+    <div style="background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.15);border-radius:12px;padding:1.2rem">
+      <div style="font-size:.65rem;color:var(--green);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.7rem">Temuan Utama</div>
+      <div class="check-list" style="margin-top:0">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> TF-BIGRU dan TFGRUGRU outperform baseline GRU di semua metrik</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Bidirectional approach mengurangi prediksi lag pada trend reversal</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Stacked GRU overfitting pada train &mdash; generalisasi lebih rendah</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> TF-BIGRU &mdash; sweet spot antara kapasitas dan generalisasi</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s9">
+  <div class="badge">Visualization</div>
+  <h2 class="gradient-text">Visualisasi &amp; Analisis</h2>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div>
+      <p class="lead-left">Setiap arsitektur dievaluasi dengan <strong style="color:white">forecasting plot train/test</strong> yang membandingkan prediksi model terhadap harga BBCA aktual &mdash; memungkinkan analisis visual lag, trend following, dan error distribution.</p>
+      <br>
+      <div class="check-list">
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Train forecast plot</strong> &mdash; verifikasi model belajar pola training</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Test forecast plot</strong> &mdash; evaluasi generalisasi ke data tidak terlihat</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Error distribution</strong> &mdash; histogram residuals per arsitektur</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Comparison chart</strong> &mdash; MSE/MAE bar chart semua arsitektur</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Semua plot di-generate di Jupyter dengan Matplotlib/Seaborn</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card"><div class="card-icon" style="background:rgba(168,85,247,.12)"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--accent)"></i></div><h4>Trend Following Accuracy</h4><p>Bidirectional variants lebih akurat dalam mengikuti trend reversal &mdash; konteks backward sequence membantu mendeteksi inflection point lebih awal.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(250,204,21,.12)"><i data-lucide="activity" style="width:18px;height:18px;color:var(--yellow)"></i></div><h4>Volatility Handling</h4><p>TF-BIGRU menunjukkan performa lebih stabil pada periode volatilitas tinggi dibandingkan baseline GRU &mdash; lebih robust terhadap sudden price spikes.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(74,222,128,.12)"><i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--green)"></i></div><h4>Financial Implication</h4><p>12.4% improvement dalam MSE merepresentasikan pengurangan error prediksi yang signifikan dalam konteks manajemen risiko investasi.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s10">
+  <div class="big-logo"><i data-lucide="trending-up" style="width:54px;height:54px;color:white;stroke-width:1.7"></i></div>
+  <div class="badge"><span class="pulse-dot"></span>Personal Research · Time Series</div>
+  <h1 class="gradient-text">Stock Forecasting</h1>
+  <p class="tagline">TF-BIGRU outperforms baseline GRU by 12.4%</p>
+  <div class="feat-badges">
+    <div class="fb"><i data-lucide="brain" style="width:13px;height:13px"></i> GRU Variants</div>
+    <div class="fb"><i data-lucide="repeat-2" style="width:13px;height:13px"></i> Bidirectional</div>
+    <div class="fb"><i data-lucide="settings-2" style="width:13px;height:13px"></i> Custom TF-BIGRU</div>
+    <div class="fb"><i data-lucide="activity" style="width:13px;height:13px"></i> OHLCV BBCA</div>
+    <div class="fb"><i data-lucide="bar-chart-2" style="width:13px;height:13px"></i> MSE / MAE Eval</div>
+  </div>
+  <p class="credit">Python &middot; TensorFlow &middot; Keras &middot; GRU &middot; LSTM &middot; Pandas &middot; Matplotlib &middot; BBCA</p>
+</section>
+
+</div>
+<nav class="nav">
+  <button id="prevBtn"><i data-lucide="chevron-left" style="width:18px;height:18px"></i></button>
+  <div class="dots" id="dots"></div>
+  <span class="counter" id="counter"></span>
+  <button id="nextBtn"><i data-lucide="chevron-right" style="width:18px;height:18px"></i></button>
+</nav>
+<script>
+const slides = document.querySelectorAll('.slide');
+const dots = document.getElementById('dots');
+const counter = document.getElementById('counter');
+const bar = document.getElementById('progressBar');
+let cur = 0;
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => go(i);
+  dots.appendChild(d);
+});
+function go(n) {
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('exit');
+  const prev = cur;
+  setTimeout(() => slides[prev].classList.remove('exit'), 450);
+  cur = n;
+  slides[cur].classList.add('active');
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+  counter.textContent = (cur + 1) + ' / ' + slides.length;
+  bar.style.width = ((cur + 1) / slides.length * 100) + '%';
+}
+function next() { if (cur < slides.length - 1) go(cur + 1); }
+function prev() { if (cur > 0) go(cur - 1); }
+document.getElementById('nextBtn').onclick = next;
+document.getElementById('prevBtn').onclick = prev;
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') next(); if (e.key === 'ArrowLeft') prev(); });
+go(0);
+lucide.createIcons();
+</script>
+</body>
+</html>
