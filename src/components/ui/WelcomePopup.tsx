@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 
-const PORTRAIT_SRC = "/photos/portraits/formal-portraits/IMG_5494 2.jpg";
+const PORTRAIT_SRC = "/site-assets/portraits/welcome-portrait.jpg";
 
 export default function WelcomePopup() {
   const [isOpen, setIsOpen] = useState(true);

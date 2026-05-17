@@ -52,7 +52,7 @@ function extractDate(slug: string) {
 }
 
 export async function GET() {
-  const photosDir = path.join(process.cwd(), "public", "photos");
+  const photosDir = path.join(process.cwd(), "public", "site-photos");
 
   if (!fs.existsSync(photosDir)) return NextResponse.json([]);
 
@@ -90,7 +90,7 @@ export async function GET() {
 
       const photos = files.map((file, i) => ({
         id:   `${albumFolder}__${subFolder}__${i}`,
-        src:  `/photos/${albumFolder}/${subFolder}/${file}`,
+        src:  `/site-photos/${albumFolder}/${subFolder}/${file}`,
         from: accent,
         to:   accent,
       }));
@@ -116,7 +116,7 @@ export async function GET() {
         date:  extractDate(albumFolder),
         photos: looseFiles.map((file, i) => ({
           id:   `${albumFolder}__root__${i}`,
-          src:  `/photos/${albumFolder}/${file}`,
+          src:  `/site-photos/${albumFolder}/${file}`,
           from: accent,
           to:   accent,
         })),
