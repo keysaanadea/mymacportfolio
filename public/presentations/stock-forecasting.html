@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stock Forecasting — GRU-Based Deep Learning</title>
+<title>Stock Forecasting, GRU-Based Deep Learning</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
@@ -155,7 +155,7 @@ h3 { font-size: 1.4rem; font-weight: 600; }
   <h1 class="gradient-text">Stock Forecasting</h1>
   <p class="subtitle">GRU-Based Deep Learning untuk Prediksi Saham Indonesia</p>
   <div class="divider"></div>
-  <p class="lead">Studi komparatif arsitektur GRU untuk prediksi harga saham sektor teknologi Indonesia (BBCA) &mdash; custom TF-BIGRU dan TFGRUGRU outperform baseline GRU pada train dan test.</p>
+  <p class="lead">Studi komparatif arsitektur GRU untuk prediksi harga saham sektor teknologi Indonesia (BBCA). Custom TF-BIGRU dan TFGRUGRU outperform baseline GRU pada train dan test.</p>
   <div style="margin-top:1.5rem;display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center">
     <span class="tag"><i data-lucide="brain" style="width:13px;height:13px"></i> GRU &middot; LSTM</span>
     <span class="tag"><i data-lucide="repeat-2" style="width:13px;height:13px"></i> Bidirectional RNN</span>
@@ -173,7 +173,7 @@ h3 { font-size: 1.4rem; font-weight: 600; }
     <div>
       <p class="lead-left">Penelitian ini menganalisis dan membandingkan <strong style="color:white">6+ arsitektur deep learning berbasis GRU</strong> untuk memprediksi harga saham sektor teknologi Indonesia, dengan fokus pada saham BBCA sebagai benchmark.</p>
       <br>
-      <p class="lead-left">Dibandingkan arsitektur standar (Baseline GRU, Bidirectional GRU, Stacked GRU), dua <strong style="color:white">varian custom</strong> &mdash; <strong style="color:white">TF-BIGRU</strong> dan <strong style="color:white">TFGRUGRU</strong> &mdash; dirancang dan dievaluasi terhadap beberapa metrik time series forecasting.</p>
+      <p class="lead-left">Dibandingkan arsitektur standar (Baseline GRU, Bidirectional GRU, Stacked GRU), dua <strong style="color:white">varian custom</strong>, yaitu <strong style="color:white">TF-BIGRU</strong> dan <strong style="color:white">TFGRUGRU</strong>, dirancang dan dievaluasi terhadap beberapa metrik time series forecasting.</p>
       <div class="stats">
         <div class="stat"><div class="num">6+</div><div class="lbl">Arsitektur</div></div>
         <div class="stat"><div class="num">3500</div><div class="lbl">Trading Days</div></div>
@@ -194,29 +194,29 @@ h3 { font-size: 1.4rem; font-weight: 600; }
   <div class="divider"></div>
   <div class="two-col">
     <div>
-      <p class="lead-left">Prediksi harga saham adalah salah satu aplikasi <strong style="color:white">time series forecasting</strong> yang paling menantang &mdash; data bersifat non-stasioner, noise tinggi, dan dipengaruhi faktor eksternal yang sulit dimodelkan.</p>
+      <p class="lead-left">Prediksi harga saham adalah salah satu aplikasi <strong style="color:white">time series forecasting</strong> yang paling menantang. Datanya bersifat non-stasioner, memiliki noise tinggi, dan dipengaruhi faktor eksternal yang sulit dimodelkan.</p>
       <br>
       <p class="lead-left">Deep learning berbasis RNN, khususnya <strong style="color:white">GRU (Gated Recurrent Unit)</strong>, terbukti efektif menangkap dependensi temporal jangka panjang dalam data finansial dibanding model statistik klasik seperti ARIMA.</p>
       <br>
       <div class="check-list">
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">BBCA</strong> dipilih sebagai benchmark &mdash; saham perbankan terbesar di Indonesia dengan data historis panjang</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">BBCA</strong> dipilih sebagai benchmark, yaitu saham perbankan terbesar di Indonesia dengan data historis panjang</div>
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">OHLCV</strong> (Open, High, Low, Close, Volume) sebagai fitur input multi-dimensi</div>
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Fokus pada <strong style="color:white">evaluasi arsitektur</strong>, bukan strategi trading</div>
-        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Model ini bersifat akademis &mdash; bukan financial advice</div>
+        <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Model ini bersifat akademis dan bukan financial advice</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.8rem">
       <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.18);border-radius:14px;padding:1.3rem">
         <div style="font-size:.65rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.7rem">GRU vs LSTM</div>
         <div class="check-list" style="margin-top:0">
-          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">GRU</strong> lebih efisien &mdash; 2 gate (reset &amp; update) vs LSTM 3 gate</div>
+          <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">GRU</strong> lebih efisien, dengan 2 gate (reset &amp; update) dibanding LSTM yang memakai 3 gate</div>
           <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Training lebih cepat dengan performa comparable pada sequence pendek</div>
           <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Lebih robust terhadap gradient vanishing pada sequence panjang</div>
         </div>
       </div>
       <div style="background:rgba(250,204,21,.05);border:1px solid rgba(250,204,21,.15);border-radius:12px;padding:.9rem">
         <div style="font-size:.64rem;color:var(--yellow);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">BBCA Data</div>
-        <p style="font-size:.74rem;color:var(--muted);line-height:1.5">3,500+ hari perdagangan BBCA digunakan &mdash; train/test split 80/20 dengan MinMaxScaler normalization per fitur OHLCV.</p>
+        <p style="font-size:.74rem;color:var(--muted);line-height:1.5">3,500+ hari perdagangan BBCA digunakan, dengan train/test split 80/20 dan MinMaxScaler normalization per fitur OHLCV.</p>
       </div>
     </div>
   </div>
@@ -226,7 +226,7 @@ h3 { font-size: 1.4rem; font-weight: 600; }
   <div class="badge">Pipeline</div>
   <h2 class="gradient-text">Pipeline Forecasting</h2>
   <div class="divider"></div>
-  <p class="lead-left" style="text-align:center;margin-bottom:1rem">Data OHLCV mentah diproses melalui normalisasi, windowing temporal, training model GRU, hingga prediksi dan evaluasi &mdash; dengan inverse scaling untuk mendapatkan harga aktual.</p>
+  <p class="lead-left" style="text-align:center;margin-bottom:1rem">Data OHLCV mentah diproses melalui normalisasi, windowing temporal, training model GRU, hingga prediksi dan evaluasi. Inverse scaling dipakai untuk mendapatkan harga aktual.</p>
   <div class="pipeline-flow">
     <div class="pf-step data"><span class="ps-tag">Data</span><div class="ps-label">OHLCV Raw</div><div class="ps-sub">BBCA historis 3500+ hari</div></div>
     <div class="pf-arrow">&#8594;</div>
@@ -251,7 +251,7 @@ h3 { font-size: 1.4rem; font-weight: 600; }
     </div>
     <div style="background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.15);border-radius:12px;padding:1rem">
       <div style="font-size:.64rem;color:var(--green);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.5rem">Inverse Transform</div>
-      <p style="font-size:.74rem;color:var(--muted);line-height:1.45">Prediksi model di-inverse transform kembali ke skala harga asli sebelum evaluasi &mdash; MSE dan MAE dihitung dalam satuan rupiah.</p>
+      <p style="font-size:.74rem;color:var(--muted);line-height:1.45">Prediksi model di-inverse transform kembali ke skala harga asli sebelum evaluasi. MSE dan MAE dihitung dalam satuan rupiah.</p>
     </div>
   </div>
 </section>
@@ -270,13 +270,13 @@ h3 { font-size: 1.4rem; font-weight: 600; }
     <div class="mc">
       <div class="mc-type">Standard</div>
       <h4>Bidirectional GRU</h4>
-      <div class="mc-desc">Memproses sequence maju dan mundur &mdash; menangkap konteks dari kedua arah temporal.</div>
+      <div class="mc-desc">Memproses sequence maju dan mundur, sehingga bisa menangkap konteks dari kedua arah temporal.</div>
       <div class="mc-score" style="color:var(--cyan)">+Konteks backward sequence</div>
     </div>
     <div class="mc">
       <div class="mc-type">Standard</div>
       <h4>Stacked GRU</h4>
-      <div class="mc-desc">Multiple GRU layers bertumpuk &mdash; abstraksi fitur temporal yang lebih dalam per layer.</div>
+      <div class="mc-desc">Multiple GRU layers bertumpuk, sehingga menghasilkan abstraksi fitur temporal yang lebih dalam per layer.</div>
       <div class="mc-score" style="color:var(--blue)">+Deep temporal hierarchy</div>
     </div>
     <div class="mc best">
@@ -288,7 +288,7 @@ h3 { font-size: 1.4rem; font-weight: 600; }
     <div class="mc best">
       <div class="mc-type">Custom</div>
       <h4>TFGRUGRU</h4>
-      <div class="mc-desc">Varian custom dengan stacking GRU yang diaugmentasi transformasi fitur &mdash; menyeimbangkan depth dan width representasi temporal.</div>
+      <div class="mc-desc">Varian custom dengan stacking GRU yang diaugmentasi transformasi fitur, untuk menyeimbangkan depth dan width representasi temporal.</div>
       <div class="mc-score" style="color:var(--accent)">Konsisten outperform baseline</div>
     </div>
     <div class="mc" style="border-style:dashed;opacity:.6">
@@ -302,17 +302,17 @@ h3 { font-size: 1.4rem; font-weight: 600; }
 
 <section class="slide" id="s6">
   <div class="badge">Custom Architectures</div>
-  <h2 class="gradient-text">TF-BIGRU &amp; TFGRUGRU &mdash; Detail</h2>
+  <h2 class="gradient-text">TF-BIGRU &amp; TFGRUGRU, Detail</h2>
   <div class="divider"></div>
   <div class="two-col">
     <div>
-      <p class="lead-left" style="margin-bottom:.8rem"><strong style="color:white">TF-BIGRU</strong> dirancang untuk menggabungkan feature transformation sebelum GRU bidirectional &mdash; memungkinkan model mengekstrak representasi yang lebih informatif sebelum masuk ke mekanisme recurrent.</p>
+      <p class="lead-left" style="margin-bottom:.8rem"><strong style="color:white">TF-BIGRU</strong> dirancang untuk menggabungkan feature transformation sebelum GRU bidirectional. Ini memungkinkan model mengekstrak representasi yang lebih informatif sebelum masuk ke mekanisme recurrent.</p>
       <div class="check-list">
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Feature transformation layer mengekstrak representasi awal</div>
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Bidirectional GRU memproses forward &amp; backward context</div>
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Dense head untuk proyeksi ke prediksi Close price</div>
       </div>
-      <p class="lead-left" style="margin-top:1rem;margin-bottom:.8rem"><strong style="color:white">TFGRUGRU</strong> menggunakan dual GRU stack dengan layer transformasi di tengah &mdash; menciptakan representasi hierarkis yang lebih ekspresif.</p>
+      <p class="lead-left" style="margin-top:1rem;margin-bottom:.8rem"><strong style="color:white">TFGRUGRU</strong> menggunakan dual GRU stack dengan layer transformasi di tengah, sehingga menciptakan representasi hierarkis yang lebih ekspresif.</p>
       <div class="check-list">
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> First GRU layer: low-level temporal pattern extraction</div>
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Transformation bridge antar GRU layer</div>
@@ -347,7 +347,7 @@ h3 { font-size: 1.4rem; font-weight: 600; }
         </div>
       </div>
       <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:.9rem">
-        <p style="font-size:.74rem;color:var(--muted);line-height:1.5"><strong style="color:white">Motivasi desain:</strong> Transformation layer bertindak sebagai bottleneck yang memaksa model mengkompresi informasi sebelum GRU &mdash; mengurangi noise dan meningkatkan generalisasi.</p>
+        <p style="font-size:.74rem;color:var(--muted);line-height:1.5"><strong style="color:white">Motivasi desain:</strong> Transformation layer bertindak sebagai bottleneck yang memaksa model mengkompresi informasi sebelum GRU, sehingga mengurangi noise dan meningkatkan generalisasi.</p>
       </div>
     </div>
   </div>
@@ -390,7 +390,7 @@ h3 { font-size: 1.4rem; font-weight: 600; }
     </div>
   </div>
   <div style="margin-top:1.5rem;padding:1.2rem 1.5rem;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.15);border-radius:12px;max-width:680px;text-align:center">
-    <p style="font-size:.82rem;color:var(--muted);line-height:1.6">Stack berbasis <strong style="color:white">pure Python ML ecosystem</strong> &mdash; pilihan deliberat untuk memudahkan reproduksi eksperimen dan perbandingan antar arsitektur dalam lingkungan Jupyter Notebook.</p>
+    <p style="font-size:.82rem;color:var(--muted);line-height:1.6">Stack berbasis <strong style="color:white">pure Python ML ecosystem</strong>. Ini adalah pilihan deliberat untuk memudahkan reproduksi eksperimen dan perbandingan antar arsitektur dalam lingkungan Jupyter Notebook.</p>
   </div>
 </section>
 
@@ -399,18 +399,18 @@ h3 { font-size: 1.4rem; font-weight: 600; }
   <h2 class="gradient-text">Metrik Evaluasi &amp; Hasil</h2>
   <div class="divider"></div>
   <div class="result-grid">
-    <div class="result-card purple-c"><div class="rnum">BBCA</div><div class="rlbl">Saham target benchmark &mdash; PT Bank Central Asia Tbk</div></div>
+    <div class="result-card purple-c"><div class="rnum">BBCA</div><div class="rlbl">Saham target benchmark, PT Bank Central Asia Tbk</div></div>
     <div class="result-card yellow"><div class="rnum">6+</div><div class="rlbl">Arsitektur yang dibandingkan pada dataset yang sama</div></div>
     <div class="result-card green"><div class="rnum">12.4%</div><div class="rlbl">Peningkatan TF-BIGRU vs baseline GRU pada test MSE</div></div>
-    <div class="result-card cyan"><div class="rnum">BiDir</div><div class="rlbl">Varian terbaik &mdash; Bidirectional approach konsisten unggul</div></div>
+    <div class="result-card cyan"><div class="rnum">BiDir</div><div class="rlbl">Varian terbaik, dengan bidirectional approach yang konsisten unggul</div></div>
   </div>
   <div style="margin-top:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;width:100%">
     <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.18);border-radius:12px;padding:1.2rem">
       <div style="font-size:.65rem;color:var(--accent);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.7rem">Metrik Evaluasi</div>
       <div class="check-list" style="margin-top:0">
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">MSE</strong> (Mean Squared Error) &mdash; penalizes large errors</div>
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">MAE</strong> (Mean Absolute Error) &mdash; average absolute deviation</div>
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">RMSE</strong> &mdash; dalam satuan harga (rupiah) untuk interpretasi langsung</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">MSE</strong> (Mean Squared Error), penalizes large errors</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">MAE</strong> (Mean Absolute Error), average absolute deviation</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">RMSE</strong>, dalam satuan harga (rupiah) untuk interpretasi langsung</div>
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Train &amp; test evaluation terpisah untuk deteksi overfitting</div>
       </div>
     </div>
@@ -419,8 +419,8 @@ h3 { font-size: 1.4rem; font-weight: 600; }
       <div class="check-list" style="margin-top:0">
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> TF-BIGRU dan TFGRUGRU outperform baseline GRU di semua metrik</div>
         <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Bidirectional approach mengurangi prediksi lag pada trend reversal</div>
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Stacked GRU overfitting pada train &mdash; generalisasi lebih rendah</div>
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> TF-BIGRU &mdash; sweet spot antara kapasitas dan generalisasi</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> Stacked GRU overfitting pada train, sehingga generalisasi lebih rendah</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> TF-BIGRU menjadi sweet spot antara kapasitas dan generalisasi</div>
       </div>
     </div>
   </div>
@@ -432,19 +432,19 @@ h3 { font-size: 1.4rem; font-weight: 600; }
   <div class="divider"></div>
   <div class="two-col">
     <div>
-      <p class="lead-left">Setiap arsitektur dievaluasi dengan <strong style="color:white">forecasting plot train/test</strong> yang membandingkan prediksi model terhadap harga BBCA aktual &mdash; memungkinkan analisis visual lag, trend following, dan error distribution.</p>
+      <p class="lead-left">Setiap arsitektur dievaluasi dengan <strong style="color:white">forecasting plot train/test</strong> yang membandingkan prediksi model terhadap harga BBCA aktual. Ini memungkinkan analisis visual lag, trend following, dan error distribution.</p>
       <br>
       <div class="check-list">
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Train forecast plot</strong> &mdash; verifikasi model belajar pola training</div>
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Test forecast plot</strong> &mdash; evaluasi generalisasi ke data tidak terlihat</div>
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Error distribution</strong> &mdash; histogram residuals per arsitektur</div>
-        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Comparison chart</strong> &mdash; MSE/MAE bar chart semua arsitektur</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Train forecast plot</strong>, untuk verifikasi model belajar pola training</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Test forecast plot</strong>, untuk evaluasi generalisasi ke data tidak terlihat</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Error distribution</strong>, histogram residuals per arsitektur</div>
+        <div class="check-item"><i data-lucide="check-circle" class="ok" style="width:14px;height:14px"></i> <strong style="color:white">Comparison chart</strong>, MSE/MAE bar chart semua arsitektur</div>
         <div class="check-item"><i data-lucide="info" class="info" style="width:14px;height:14px"></i> Semua plot di-generate di Jupyter dengan Matplotlib/Seaborn</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.8rem">
-      <div class="card"><div class="card-icon" style="background:rgba(168,85,247,.12)"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--accent)"></i></div><h4>Trend Following Accuracy</h4><p>Bidirectional variants lebih akurat dalam mengikuti trend reversal &mdash; konteks backward sequence membantu mendeteksi inflection point lebih awal.</p></div>
-      <div class="card"><div class="card-icon" style="background:rgba(250,204,21,.12)"><i data-lucide="activity" style="width:18px;height:18px;color:var(--yellow)"></i></div><h4>Volatility Handling</h4><p>TF-BIGRU menunjukkan performa lebih stabil pada periode volatilitas tinggi dibandingkan baseline GRU &mdash; lebih robust terhadap sudden price spikes.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(168,85,247,.12)"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--accent)"></i></div><h4>Trend Following Accuracy</h4><p>Bidirectional variants lebih akurat dalam mengikuti trend reversal. Konteks backward sequence membantu mendeteksi inflection point lebih awal.</p></div>
+      <div class="card"><div class="card-icon" style="background:rgba(250,204,21,.12)"><i data-lucide="activity" style="width:18px;height:18px;color:var(--yellow)"></i></div><h4>Volatility Handling</h4><p>TF-BIGRU menunjukkan performa lebih stabil pada periode volatilitas tinggi dibandingkan baseline GRU, sehingga lebih robust terhadap sudden price spikes.</p></div>
       <div class="card"><div class="card-icon" style="background:rgba(74,222,128,.12)"><i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--green)"></i></div><h4>Financial Implication</h4><p>12.4% improvement dalam MSE merepresentasikan pengurangan error prediksi yang signifikan dalam konteks manajemen risiko investasi.</p></div>
     </div>
   </div>

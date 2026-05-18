@@ -5,9 +5,9 @@ import { committeeExperience, expertise, profile } from "@/data/portfolio";
 import type { WindowId } from "@/types";
 
 const NOTES = [
-  { id: "about",  label: "About Me",      icon: "📋" },
-  { id: "skills", label: "Skills",        icon: "📋" },
-  { id: "orgs",   label: "Experience",    icon: "📋" },
+  { id: "about",  label: "About Me" },
+  { id: "skills", label: "Skills" },
+  { id: "orgs",   label: "Experience" },
 ];
 
 const hobbies = ["Reading", "Running", "Pilates", "Padel"];
@@ -41,7 +41,6 @@ export default function NotesWindow({ onOpen }: NotesWindowProps) {
               cursor: "pointer",
             }}
           >
-            <span className="text-yellow-400 text-xs">{n.icon}</span>
             <span
               className="text-xs font-medium"
               style={{ color: active === n.id ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.38)" }}
@@ -72,7 +71,7 @@ export default function NotesWindow({ onOpen }: NotesWindowProps) {
             <div className="h-px bg-white/8" />
             <div>
               <p className="text-white/30 text-xs uppercase tracking-wider font-semibold mb-1.5">Location</p>
-              <p className="text-white/70">📍 {profile.location}</p>
+              <p className="text-white/70">{profile.location}</p>
             </div>
             <div className="h-px bg-white/8" />
             <div>
@@ -111,22 +110,21 @@ export default function NotesWindow({ onOpen }: NotesWindowProps) {
               <div className="space-y-1">
                 <p className="text-white/75 font-medium">Institut Teknologi Sepuluh Nopember (ITS)</p>
                 <p className="text-white/40 text-xs">S.Kom · Informatics Engineering · GPA 3.74 / 4.00</p>
-                <p className="text-white/30 text-xs">Aug 2021 – Aug 2025 · Surabaya, East Java</p>
+                <p className="text-white/30 text-xs">Aug 2021 to Aug 2025 · Surabaya, East Java</p>
               </div>
               <div className="space-y-1 mt-2">
                 <p className="text-white/75 font-medium">Bangkit Academy 2024</p>
                 <p className="text-white/40 text-xs">Machine Learning Path · Google, GoTo, Traveloka</p>
-                <p className="text-white/30 text-xs">Feb – Jul 2024</p>
+                <p className="text-white/30 text-xs">Feb to Jul 2024</p>
               </div>
             </div>
             <div className="h-px bg-white/8" />
             <div>
               <p className="text-white/30 text-xs uppercase tracking-wider font-semibold mb-1.5">Achievement</p>
               <div className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.18)" }}>
-                <span className="text-lg">🏆</span>
                 <div>
-                  <p className="text-yellow-400/90 text-xs font-semibold">Top 3 Best Participant — LKMM-TM ITS 2023</p>
-                  <p className="text-white/35 text-xs">Intermediate Level Student Management Training · Aug – Sep 2023</p>
+                  <p className="text-yellow-400/90 text-xs font-semibold">Top 3 Best Participant, LKMM-TM ITS 2023</p>
+                  <p className="text-white/35 text-xs">Intermediate Level Student Management Training · Aug to Sep 2023</p>
                 </div>
               </div>
             </div>
@@ -279,22 +277,22 @@ export default function NotesWindow({ onOpen }: NotesWindowProps) {
                         <p className="text-sm font-semibold text-white/85">PT Semen Indonesia (Persero) Tbk</p>
                         <p className="text-white/60 text-xs mt-0.5">AI Engineering Intern</p>
                       </div>
-                      <span className="text-white/25 text-xs shrink-0">Dec 2025 – Present</span>
+                      <span className="text-white/25 text-xs shrink-0">Dec 2025 to Present</span>
                     </div>
                     <p className="text-white/40 text-xs mt-1.5 leading-relaxed">
-                      End-to-end LLM chatbot — RAG pipelines, tool routing, voice I/O (Whisper + ElevenLabs), HC database integration
+                      End-to-end LLM chatbot with RAG pipelines, tool routing, voice I/O (Whisper + ElevenLabs), and HC database integration
                     </p>
                   </div>
                   <div className="px-3 py-2.5 rounded-lg" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                       <div>
-                        <p className="text-sm font-semibold text-white/85">Telkom Indonesia – East Java</p>
+                        <p className="text-sm font-semibold text-white/85">Telkom Indonesia, East Java</p>
                         <p className="text-white/60 text-xs mt-0.5">Frontend Developer Intern</p>
                       </div>
-                      <span className="text-white/25 text-xs shrink-0">May – Aug 2024</span>
+                      <span className="text-white/25 text-xs shrink-0">May to Aug 2024</span>
                     </div>
                     <p className="text-white/40 text-xs mt-1.5 leading-relaxed">
-                      Built recMe — real-time STO topology platform across 10+ cities, 100+ network topologies. Drag-and-drop config, live device status, location-based access
+                      Built recMe, a real-time STO topology platform across 10+ cities and 100+ network topologies. Includes drag-and-drop config, live device status, and location-based access
                     </p>
                   </div>
                 </div>

@@ -102,7 +102,7 @@ const meta: ProjectMeta[] = [
         { value: "3",  label: "Context Layers",     color: "#f97316" },
         { value: "11", label: "Key Capabilities",   color: "#3b82f6" },
       ],
-      tip: "One chat surface — tiered routing sends each request to SOP retrieval, HC analytics, combined SOP+data, or HC advisory based on user role and detected intent.",
+      tip: "One chat surface. Tiered routing sends each request to SOP retrieval, HC analytics, combined SOP+data, or HC advisory based on user role and detected intent.",
     },
     arch: {
       iframeUrl: "/presentations/sig-chatbot.html",
@@ -161,7 +161,7 @@ const meta: ProjectMeta[] = [
     id: "bisindo-ai", folderName: "BISINDO-AI",
     readme: {
       title: "BISINDO AI", color: "#10b981",
-      subtitle: "Indonesian Sign Language Recognition — Bangkit Academy 2024 Capstone",
+      subtitle: "Indonesian Sign Language Recognition, Bangkit Academy 2024 Capstone",
       badges: [
         { label: "Bangkit 2024", bg: "#22c55e", color: "#fff" },
         { label: "VGG16",        bg: "#10b981", color: "#fff" },
@@ -169,12 +169,12 @@ const meta: ProjectMeta[] = [
         { label: "Android",      bg: "#6366f1", color: "#fff" },
       ],
       lastUpdated: "3 months ago",
-      about: "Mobile app for learning BISINDO (Indonesian Sign Language) built as a Bangkit Academy 2024 Capstone by a 7-person team across ML, Cloud, and Mobile tracks. I served as ML Engineer — responsible for the full ML pipeline: dataset preparation, augmentation, experimenting 4 transfer learning architectures (MobileNet, VGG16, VGG19, InceptionV3), and exporting the selected VGG16 model to TFLite for Android deployment.",
+      about: "Mobile app for learning BISINDO (Indonesian Sign Language) built as a Bangkit Academy 2024 Capstone by a 7-person team across ML, Cloud, and Mobile tracks. I served as ML Engineer and handled the full ML pipeline, including dataset preparation, augmentation, experimenting with 4 transfer learning architectures (MobileNet, VGG16, VGG19, InceptionV3), and exporting the selected VGG16 model to TFLite for Android deployment.",
       features: [
-        { icon: "", title: "VGG16 Transfer Learning",      desc: "VGG16 pretrained on ImageNet, fine-tuned with a custom Dense(26, softmax) head — selected over MobileNet, VGG19, and InceptionV3 after comparative experiments." },
-        { icon: "", title: "26-Class BISINDO Classifier",  desc: "Classifies A–Z hand gesture alphabet at 224×224 input resolution with categorical cross-entropy and Adam optimizer." },
-        { icon: "", title: "Data Augmentation Pipeline",   desc: "imgaug library with 6 techniques (flip, crop, contrast, noise, brightness, affine rotation) — each image produces 5 augmented variants." },
-        { icon: "", title: "TFLite On-device Inference",   desc: "Keras .h5 converted to TFLite, uploaded to Google Cloud Storage, and loaded via TFLite Interpreter in the Android app — no internet required at inference time." },
+        { icon: "", title: "VGG16 Transfer Learning",      desc: "VGG16 pretrained on ImageNet and fine-tuned with a custom Dense(26, softmax) head. It was selected over MobileNet, VGG19, and InceptionV3 after comparative experiments." },
+        { icon: "", title: "26-Class BISINDO Classifier",  desc: "Classifies A to Z hand gesture alphabet at 224×224 input resolution with categorical cross-entropy and Adam optimizer." },
+        { icon: "", title: "Data Augmentation Pipeline",   desc: "Uses imgaug with 6 techniques such as flip, crop, contrast, noise, brightness, and affine rotation. Each image produces 5 augmented variants." },
+        { icon: "", title: "TFLite On-device Inference",   desc: "Keras .h5 was converted to TFLite, uploaded to Google Cloud Storage, and loaded via TFLite Interpreter in the Android app. No internet is required at inference time." },
       ],
       metrics: [
         { value: "26",  label: "Gesture Classes", color: "#10b981" },
@@ -202,12 +202,12 @@ const meta: ProjectMeta[] = [
       ],
     },
     overview: {
-      nutshell: "Bangkit 2024 Capstone — VGG16-based BISINDO gesture classifier converted to TFLite and deployed in an Android app, enabling real-time on-device sign language recognition.",
+      nutshell: "Bangkit 2024 Capstone project with a VGG16-based BISINDO gesture classifier converted to TFLite and deployed in an Android app, enabling real-time on-device sign language recognition.",
       tech: ["TensorFlow", "Keras", "VGG16", "TFLite", "imgaug", "OpenCV", "Python", "Android", "Google Cloud Storage"],
       links: [{ label: "GitHub Repository" }, { label: "Model Card" }, { label: "Demo Video" }],
       activity: [
         { time: "3 months ago", action: "VGG16 model exported to TFLite and integrated into Android app" },
-        { time: "4 months ago", action: "Model experimentation done — VGG16 selected over MobileNet, VGG19, InceptionV3" },
+        { time: "4 months ago", action: "Model experimentation done. VGG16 selected over MobileNet, VGG19, and InceptionV3" },
         { time: "5 months ago", action: "Data augmentation pipeline built with imgaug (6 techniques, 5× expansion)" },
         { time: "6 months ago", action: "BISINDO dataset prepared, explored, and split for training" },
       ],
@@ -219,8 +219,8 @@ const meta: ProjectMeta[] = [
         { text: "✓ CameraX stream initialized",       type: "success" },
         { text: "✓ Preprocessing pipeline ready",     type: "success" },
         { text: "─".repeat(40), type: "sep" },
-        { text: "Detected: [A] — confidence: 0.97",   type: "dialog" },
-        { text: "Detected: [I] — confidence: 0.99",   type: "dialog" },
+        { text: "Detected: [A], confidence: 0.97",    type: "dialog" },
+        { text: "Detected: [I], confidence: 0.99",    type: "dialog" },
         { text: "Avg inference time: 28ms",            type: "info" },
       ],
     },
@@ -229,7 +229,7 @@ const meta: ProjectMeta[] = [
     id: "recme-platform", folderName: "recMe",
     readme: {
       title: "recMe", color: "#0ea5e9",
-      subtitle: "Real-time Network Topology Monitoring — PT Telkom Indonesia Regional V",
+      subtitle: "Real-time Network Topology Monitoring, PT Telkom Indonesia Regional V",
       badges: [
         { label: "Internship",  bg: "#22c55e", color: "#fff" },
         { label: "GoJS",        bg: "#0ea5e9", color: "#fff" },
@@ -237,11 +237,11 @@ const meta: ProjectMeta[] = [
         { label: "MySQL",       bg: "#f97316", color: "#fff" },
       ],
       lastUpdated: "8 months ago",
-      about: "Network topology monitoring platform built during internship (KP) at PT Telkom Indonesia Regional V Surabaya. I developed the frontend — interactive topology canvas using GoJS with Vanilla JS, drag-and-drop node configuration, AJAX-based data sync with the Laravel backend, and a node status dashboard supporting 8 device types across 6 evaluation criteria.",
+      about: "Network topology monitoring platform built during internship (KP) at PT Telkom Indonesia Regional V Surabaya. I developed the frontend, including an interactive topology canvas using GoJS with Vanilla JS, drag-and-drop node configuration, AJAX-based data sync with the Laravel backend, and a node status dashboard supporting 8 device types across 6 evaluation criteria.",
       features: [
-        { icon: "", title: "GoJS Topology Canvas",    desc: "Interactive network diagram built with GoJS library — drag-and-drop node placement, 8 device node types, and topology configuration for Telkom engineers." },
-        { icon: "", title: "AJAX Data Sync",          desc: "Topology changes synced to the Laravel backend via AJAX/JSON requests — configuration persisted to MySQL without page reload." },
-        { icon: "", title: "Node Status Dashboard",   desc: "Per-device status monitoring across topology nodes — engineers can view device health and configuration from one interface." },
+        { icon: "", title: "GoJS Topology Canvas",    desc: "Interactive network diagram built with the GoJS library, with drag-and-drop node placement, 8 device node types, and topology configuration for Telkom engineers." },
+        { icon: "", title: "AJAX Data Sync",          desc: "Topology changes are synced to the Laravel backend via AJAX and JSON requests, with configuration persisted to MySQL without page reload." },
+        { icon: "", title: "Node Status Dashboard",   desc: "Per-device status monitoring across topology nodes. Engineers can view device health and configuration from one interface." },
         { icon: "", title: "6 Evaluation Criteria",  desc: "System validated against 6 functional criteria during the KP period at PT Telkom Indonesia Regional V Surabaya." },
       ],
       metrics: [
@@ -250,7 +250,7 @@ const meta: ProjectMeta[] = [
         { value: "3",   label: "Months KP",          color: "#10b981" },
         { value: "GoJS",label: "Canvas Library",     color: "#6366f1" },
       ],
-      tip: "Built with Vanilla JS + GoJS on the frontend — no React or TypeScript. Backend uses Laravel + MySQL with AJAX for data exchange.",
+      tip: "Built with Vanilla JS and GoJS on the frontend, without React or TypeScript. The backend uses Laravel and MySQL with AJAX for data exchange.",
     },
     arch: {
       iframeUrl: "/presentations/recme.html",
@@ -271,11 +271,11 @@ const meta: ProjectMeta[] = [
       ],
     },
     overview: {
-      nutshell: "Network topology monitoring platform for PT Telkom Indonesia Regional V Surabaya — GoJS canvas with drag-and-drop, AJAX sync, and Laravel/MySQL backend.",
+      nutshell: "Network topology monitoring platform for PT Telkom Indonesia Regional V Surabaya, featuring a GoJS canvas with drag-and-drop, AJAX sync, and a Laravel/MySQL backend.",
       tech: ["Vanilla JS", "GoJS", "AJAX", "Laravel", "PHP", "MySQL"],
       links: [{ label: "Live Platform" }, { label: "Technical Writeup" }, { label: "API Docs" }],
       activity: [
-        { time: "8 months ago",  action: "KP completed — system validated against 6 criteria" },
+        { time: "8 months ago",  action: "KP completed. System validated against 6 criteria" },
         { time: "9 months ago",  action: "Node status dashboard implemented" },
         { time: "10 months ago", action: "GoJS topology canvas with drag-and-drop built" },
         { time: "11 months ago", action: "Initial prototype and Laravel API integration" },
@@ -288,7 +288,7 @@ const meta: ProjectMeta[] = [
         { text: "✓ MySQL connected (Telkom DB)",                  type: "success" },
         { text: "✓ GoJS topology canvas loaded",                  type: "success" },
         { text: "─".repeat(40), type: "sep" },
-        { text: "AJAX POST /topology/update — node #14 saved",    type: "dialog" },
+        { text: "AJAX POST /topology/update, node #14 saved",     type: "dialog" },
         { text: "Status: 200 OK  |  nodes updated: 1",            type: "info" },
       ],
     },
@@ -356,7 +356,7 @@ const meta: ProjectMeta[] = [
       cwd: "Thesis-PaintingClassifier", command: "python classify.py --image painting.jpg",
       output: [
         { text: "✓ ResNet50 weights loaded (ImageNet)",       type: "success" },
-        { text: "✓ SVM model loaded — kernel: rbf",           type: "success" },
+        { text: "✓ SVM model loaded, kernel: rbf",            type: "success" },
         { text: "✓ Patch grid generated",                     type: "success" },
         { text: "─".repeat(40), type: "sep" },
         { text: "Extracting ResNet50 features per patch...",   type: "info" },
@@ -414,7 +414,7 @@ const meta: ProjectMeta[] = [
       ],
     },
     overview: {
-      nutshell: "A comparative study of GRU-based architectures for Indonesian stock price forecasting — custom TF-BIGRU and TFGRUGRU variants outperform baseline GRU on BBCA data.",
+      nutshell: "A comparative study of GRU-based architectures for Indonesian stock price forecasting. Custom TF-BIGRU and TFGRUGRU variants outperform the baseline GRU on BBCA data.",
       tech: ["Python", "TensorFlow/Keras", "GRU / LSTM", "Bidirectional RNN", "Matplotlib", "Pandas", "NumPy"],
       links: [{ label: "Presentation" }, { label: "GitHub Repo" }, { label: "Forecasting Charts" }],
       activity: [
@@ -427,11 +427,11 @@ const meta: ProjectMeta[] = [
     terminal: {
       cwd: "Stock-Forecasting", command: "python train.py --model tfbigru --stock BBCA",
       output: [
-        { text: "✓ BBCA OHLCV data loaded — 3,500 trading days",  type: "success" },
+        { text: "✓ BBCA OHLCV data loaded, 3,500 trading days",   type: "success" },
         { text: "✓ MinMaxScaler fitted on train set",              type: "success" },
         { text: "✓ TF-BIGRU model compiled (Adam, MSE loss)",      type: "success" },
         { text: "─".repeat(40), type: "sep" },
-        { text: "Epoch 50/50 — loss: 0.0023  val_loss: 0.0031",   type: "dialog" },
+        { text: "Epoch 50/50. loss: 0.0023  val_loss: 0.0031",    type: "dialog" },
         { text: "Test MSE: 0.0031  |  MAE: 0.0412",               type: "dialog" },
         { text: "→ TF-BIGRU outperforms baseline GRU by 12.4%",   type: "success" },
       ],
@@ -843,7 +843,7 @@ function ReadmePreview({ p }: { p: ProjectMeta }) {
         </div>
       </div>
 
-      {/* Impact — only the numbers use color */}
+      {/* Impact, only the numbers use color */}
       <div style={{ marginBottom: 18 }}>
         <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", fontFamily: "-apple-system,sans-serif", marginBottom: 8 }}>Stats</p>
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${r.metrics.length},1fr)`, gap: 7 }}>

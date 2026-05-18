@@ -17,7 +17,7 @@ export const profile: Profile = {
   name: "Keysa Anadea",
   role: "AI Engineer & Full-Stack Developer",
   location: "East Jakarta, Indonesia",
-  bio: "Informatics Engineering graduate from ITS with hands-on experience building AI systems and production web platforms. Currently engineering an end-to-end LLM-powered chatbot at PT Semen Indonesia — covering RAG pipelines, tool routing, voice I/O, and secure database integration.",
+  bio: "Informatics Engineering graduate from ITS with hands-on experience building AI systems and production web platforms. Currently engineering an end-to-end LLM-powered chatbot at PT Semen Indonesia, covering RAG pipelines, tool routing, voice I/O, and secure database integration.",
   tagline: "Building intelligent systems that make complex data feel effortless.",
   email: "keysa.anadea@gmail.com",
   avatar: "/profile.jpg",
@@ -52,8 +52,8 @@ export const projects: Project[] = [
   },
   {
     id: "gestura-bisindo",
-    name: "Gestura — BISINDO Sign Language",
-    description: "Mobile app prototype enabling the deaf and mute community to learn Indonesian Sign Language (BISINDO) through AI-powered recognition. Bangkit Academy 2024 capstone — validated by Google, Gojek & Traveloka.",
+    name: "Gestura, BISINDO Sign Language",
+    description: "Mobile app prototype enabling the deaf and mute community to learn Indonesian Sign Language (BISINDO) through AI-powered recognition. Bangkit Academy 2024 capstone, validated by Google, Gojek & Traveloka.",
     status: "Live",
     tech: ["Python", "TensorFlow/Keras", "VGG16", "CNN", "Android"],
     icon: "🤟",
@@ -62,7 +62,7 @@ export const projects: Project[] = [
   },
   {
     id: "recme-platform",
-    name: "recMe — STO Network Platform",
+    name: "recMe, STO Network Platform",
     description: "Real-time web platform for PT Telkom Indonesia to visualize and manage 100+ STO network topologies across 10+ cities. Supports drag-and-drop config, live device status, and location-based access control.",
     status: "Live",
     tech: ["Laravel", "MySQL", "GoJS", "PHP", "JavaScript"],
@@ -83,7 +83,7 @@ export const projects: Project[] = [
   {
     id: "stock-forecasting",
     name: "Stock Forecasting with GRU Models",
-    description: "Analyzed deep learning architectures for forecasting Indonesian tech-sector stock prices (BBCA). Evaluated Bidirectional GRU, Stacked GRU, and custom TF-BIGRU variants — outperforming baseline GRU on accuracy.",
+    description: "Analyzed deep learning architectures for forecasting Indonesian tech-sector stock prices (BBCA). Evaluated Bidirectional GRU, Stacked GRU, and custom TF-BIGRU variants, outperforming the baseline GRU on accuracy.",
     status: "Personal",
     tech: ["Python", "TensorFlow/Keras", "GRU/LSTM", "Matplotlib", "Pandas"],
     icon: "📈",
@@ -93,7 +93,7 @@ export const projects: Project[] = [
   {
     id: "mac-portfolio",
     name: "macOS Desktop Portfolio",
-    description: "This interactive macOS-inspired portfolio. Draggable windows, animated dock, glassmorphism UI, Spotlight search, and a live terminal — built to demonstrate frontend craft alongside technical depth.",
+    description: "This interactive macOS-inspired portfolio includes draggable windows, an animated dock, glassmorphism UI, Spotlight search, and a live terminal. It was built to demonstrate frontend craft alongside technical depth.",
     status: "Live",
     tech: ["Next.js 14", "TypeScript", "Framer Motion", "Tailwind CSS"],
     icon: "🖥️",
@@ -103,7 +103,7 @@ export const projects: Project[] = [
   {
     id: "rag-toolkit",
     name: "RAG Research Toolkit",
-    description: "Personal research project exploring retrieval-augmented generation architectures — vector stores, embedding strategies, chunking, reranking, and LLM evaluation using LangSmith and Langfuse.",
+    description: "Personal research project exploring retrieval-augmented generation architectures, including vector stores, embedding strategies, chunking, reranking, and LLM evaluation using LangSmith and Langfuse.",
     status: "WIP",
     tech: ["Python", "LlamaIndex", "Pinecone", "LangSmith", "Flowise"],
     icon: "🔬",
@@ -251,13 +251,13 @@ export const books: Book[] = [
 
 export const messages: Message[] = [
   { id: "1", text: "Hey, who are you exactly?", isMe: false, time: "10:21" },
-  { id: "2", text: "I'm Keysa — Informatics Engineering grad from ITS, currently building AI systems at PT Semen Indonesia.", isMe: true, time: "10:21" },
+  { id: "2", text: "I'm Keysa, an Informatics Engineering graduate from ITS, currently building AI systems at PT Semen Indonesia.", isMe: true, time: "10:21" },
   { id: "3", text: "What kind of AI work?", isMe: false, time: "10:22" },
-  { id: "4", text: "End-to-end LLM engineering — RAG pipelines, tool routing, voice interfaces, and real-time data access for company-wide use.", isMe: true, time: "10:22" },
+  { id: "4", text: "I work on end-to-end LLM engineering, including RAG pipelines, tool routing, voice interfaces, and real-time data access for company-wide use.", isMe: true, time: "10:22" },
   { id: "5", text: "And before that?", isMe: false, time: "10:23" },
-  { id: "6", text: "Fullstack intern at Telkom Indonesia — built a real-time monitoring platform across 10+ cities, 100+ network topologies.", isMe: true, time: "10:23" },
+  { id: "6", text: "I was a fullstack intern at Telkom Indonesia, where I built a real-time monitoring platform across 10+ cities and 100+ network topologies.", isMe: true, time: "10:23" },
   { id: "7", text: "Solid. Any standout achievement?", isMe: false, time: "10:24" },
-  { id: "8", text: "Selected for Bangkit Academy 2024 (Google, GoTo, Traveloka) — ML path. Also led 80+ members as VP at ITS engineering association.", isMe: true, time: "10:24" },
+  { id: "8", text: "I was selected for Bangkit Academy 2024 in the ML path, backed by Google, GoTo, and Traveloka. I also led 80+ members as VP at an ITS engineering association.", isMe: true, time: "10:24" },
 ];
 
 export const terminalData = {
@@ -275,7 +275,7 @@ awards
 clear`,
   whoami: `Name        ${profile.name}
 Location    ${profile.location}
-Education   ITS — Informatics Engineering, GPA 3.74 / 4.00
+Education   ITS, Informatics Engineering, GPA 3.74 / 4.00
 Status      ${profile.availability}
 Email       ${profile.email}`,
   skills: `AI / LLM
@@ -293,14 +293,14 @@ Full-Stack
   - Python, FastAPI, Node.js, Laravel
   - React, Next.js, TypeScript
   - MySQL, Supabase, Pinecone`,
-  experience: `PT Semen Indonesia (Persero) Tbk        Dec 2025 – Present
+  experience: `PT Semen Indonesia (Persero) Tbk        Dec 2025 to Present
   AI Engineering Intern
   → End-to-end LLM chatbot: RAG, tool routing,
     voice I/O (Whisper + ElevenLabs), HC DB integration
 
-Telkom Indonesia – East Java               May – Aug 2024
+Telkom Indonesia, East Java               May to Aug 2024
   Frontend Developer Intern
-  → Built recMe: real-time STO topology platform
+  → Built recMe, a real-time STO topology platform
     across 10+ cities, 100+ network topologies
   → Drag-and-drop config, live device status,
     location-based access, API integration`,
@@ -318,27 +318,27 @@ Backend   Python, FastAPI, Node.js, Laravel, MySQL
 Frontend  Next.js, React, TypeScript, Tailwind CSS
 Infra     LangSmith, Langfuse, Pinecone, Supabase, Git`,
   orgs: `Student Organizations
-  Dec 2023 – Feb 2025  HMTC ITS       Vice Head – General Secretary of External
-  Mar – Dec 2023       HMTC ITS       Staff of External Affairs
-  Apr – Nov 2023       BEM FTEIC      Staff of Internal Affairs
-  Oct 2022 – May 2024  Girl Up ITS    Deputy Director of Fundraising
+  Dec 2023 to Feb 2025  HMTC ITS       Vice Head, General Secretary of External
+  Mar to Dec 2023       HMTC ITS       Staff of External Affairs
+  Apr to Nov 2023       BEM FTEIC      Staff of Internal Affairs
+  Oct 2022 to May 2024  Girl Up ITS    Deputy Director of Fundraising
 
 Event Committees
-  Sep 2021 – Jan 2022  MABA CUP ITS    Staff of Fundraising
-  Oct 2021 – Feb 2022  INI LHO ITS!    Staff of Fundraising
-  Jun – Sep 2022       GERIGI ITS      Treasurer
-  Feb – Nov 2022       Schematics ITS  Treasurer
-  Sep 2022 – Jan 2023  MABA CUP ITS    Expert Staff of Fundraising
-  Feb – Nov 2023       Schematics ITS  Treasurer
-  Jul – Sep 2023       GERIGI ITS      Expert Staff of Event
-  Aug – Nov 2023       ITS Dies Music  Project Officer`,
+  Sep 2021 to Jan 2022  MABA CUP ITS    Staff of Fundraising
+  Oct 2021 to Feb 2022  INI LHO ITS!    Staff of Fundraising
+  Jun to Sep 2022       GERIGI ITS      Treasurer
+  Feb to Nov 2022       Schematics ITS  Treasurer
+  Sep 2022 to Jan 2023  MABA CUP ITS    Expert Staff of Fundraising
+  Feb to Nov 2023       Schematics ITS  Treasurer
+  Jul to Sep 2023       GERIGI ITS      Expert Staff of Event
+  Aug to Nov 2023       ITS Dies Music  Project Officer`,
 
   awards: `LKMM-TM ITS 2023   Top 3 Best Participant
   Intermediate Level Student Management Training
-  Aug – Sep 2023 · Institut Teknologi Sepuluh Nopember
+  Aug to Sep 2023 · Institut Teknologi Sepuluh Nopember
 
 Bangkit Academy 2024   Capstone Recognition
-  Gestura — BISINDO Sign Language App
+  Gestura, BISINDO Sign Language App
   Selected & validated by Google, Gojek & Traveloka`,
   certs: `Specializations & Programs
   Bangkit Academy ML Path            Google, GoTo, Traveloka · 2024
@@ -394,20 +394,20 @@ export const resumeEntries: ResumeEntry[] = [
 
 export const committeeExperience: CommitteeExp[] = [
   /* ── Student organizations (ongoing roles) ── */
-  { id: "hmtc-vice",         role: "Vice Head – General Secretary of External", event: "HMTC ITS",         type: "vice_head", division: "Himpunan Mahasiswa Teknik Komputer", period: "Dec 2023 – Feb 2025" },
-  { id: "hmtc-ext-staff",    role: "Staff of External Affairs",                 event: "HMTC ITS",         type: "staff",     division: "Divisi Luar Negeri",                period: "Mar – Dec 2023"       },
-  { id: "bem-int-staff",     role: "Staff of Internal Affairs",                 event: "BEM FTEIC ITS",    type: "staff",     division: "Divisi Dalam Negeri",               period: "Apr – Nov 2023"       },
-  { id: "girlup-deputy",     role: "Deputy Director of Fundraising",            event: "Girl Up ITS",      type: "director",  period: "Oct 2022 – May 2024"                                                },
+  { id: "hmtc-vice",         role: "Vice Head, General Secretary of External",  event: "HMTC ITS",         type: "vice_head", division: "Himpunan Mahasiswa Teknik Komputer", period: "Dec 2023 to Feb 2025" },
+  { id: "hmtc-ext-staff",    role: "Staff of External Affairs",                 event: "HMTC ITS",         type: "staff",     division: "Divisi Luar Negeri",                period: "Mar to Dec 2023"      },
+  { id: "bem-int-staff",     role: "Staff of Internal Affairs",                 event: "BEM FTEIC ITS",    type: "staff",     division: "Divisi Dalam Negeri",               period: "Apr to Nov 2023"      },
+  { id: "girlup-deputy",     role: "Deputy Director of Fundraising",            event: "Girl Up ITS",      type: "director",  period: "Oct 2022 to May 2024"                                               },
 
   /* ── Event committees ── */
-  { id: "mabacup-staff-2021",  role: "Staff of Fundraising",        event: "MABA CUP ITS",   year: 2021, period: "Sep 2021 – Jan 2022", type: "staff"     },
-  { id: "ilits-staff-2022",    role: "Staff of Fundraising",        event: "INI LHO ITS!",   year: 2022, period: "Oct 2021 – Feb 2022", type: "staff"     },
-  { id: "gerigi-2022",         role: "Treasurer",                   event: "GERIGI ITS",     year: 2022, period: "Jun – Sep 2022",      type: "treasurer" },
-  { id: "schematics-2022",     role: "Treasurer",                   event: "Schematics ITS", year: 2022, period: "Feb – Nov 2022",      type: "treasurer" },
-  { id: "mabacup-expert-2022", role: "Expert Staff of Fundraising", event: "MABA CUP ITS",   year: 2022, period: "Sep 2022 – Jan 2023", type: "expert"    },
-  { id: "schematics-2023",     role: "Treasurer",                   event: "Schematics ITS", year: 2023, period: "Feb – Nov 2023",      type: "treasurer" },
-  { id: "gerigi-expert-2023",  role: "Expert Staff of Event",       event: "GERIGI ITS",     year: 2023, period: "Jul – Sep 2023",      type: "expert"    },
-  { id: "itsdm-po-2023",       role: "Project Officer",             event: "ITS Dies Music", year: 2023, period: "Aug – Nov 2023",      type: "po"        },
+  { id: "mabacup-staff-2021",  role: "Staff of Fundraising",        event: "MABA CUP ITS",   year: 2021, period: "Sep 2021 to Jan 2022", type: "staff"     },
+  { id: "ilits-staff-2022",    role: "Staff of Fundraising",        event: "INI LHO ITS!",   year: 2022, period: "Oct 2021 to Feb 2022", type: "staff"     },
+  { id: "gerigi-2022",         role: "Treasurer",                   event: "GERIGI ITS",     year: 2022, period: "Jun to Sep 2022",      type: "treasurer" },
+  { id: "schematics-2022",     role: "Treasurer",                   event: "Schematics ITS", year: 2022, period: "Feb to Nov 2022",      type: "treasurer" },
+  { id: "mabacup-expert-2022", role: "Expert Staff of Fundraising", event: "MABA CUP ITS",   year: 2022, period: "Sep 2022 to Jan 2023", type: "expert"    },
+  { id: "schematics-2023",     role: "Treasurer",                   event: "Schematics ITS", year: 2023, period: "Feb to Nov 2023",      type: "treasurer" },
+  { id: "gerigi-expert-2023",  role: "Expert Staff of Event",       event: "GERIGI ITS",     year: 2023, period: "Jul to Sep 2023",      type: "expert"    },
+  { id: "itsdm-po-2023",       role: "Project Officer",             event: "ITS Dies Music", year: 2023, period: "Aug to Nov 2023",      type: "po"        },
 ];
 
 export const dockItems: DockItem[] = [
@@ -483,7 +483,7 @@ export const initialWindowLayout: Record<
     isOpen: false,
   },
   terminal: {
-    title: "keysa — -zsh — 80x24",
+    title: "keysa, -zsh, 80x24",
     position: { x: 1172, y: 96 },
     size: { width: 520, height: 336 },
     minSize: { width: 420, height: 260 },
