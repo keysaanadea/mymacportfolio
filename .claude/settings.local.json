@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(ls /Users/keysaanadea/Library/Caches/ms-playwright/)",
-      "Read(//Users/keysaanadea/Library/Caches/ms-playwright/**)"
-    ]
-  }
-}
