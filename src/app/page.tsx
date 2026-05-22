@@ -5,9 +5,9 @@ import WelcomePopup from "@/components/ui/WelcomePopup";
 export default function Home() {
   return (
     <>
-      <WelcomePopup />
       {/* Desktop experience */}
       <div className="hidden md:block w-full h-full">
+        <WelcomePopup />
         <Desktop />
       </div>
       {/* Mobile experience */}

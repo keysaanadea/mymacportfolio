@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { LaptopMinimal, Mail, Monitor, MoveUpRight, Phone } from "lucide-react";
+import { Mail, Monitor, MoveUpRight, Phone } from "lucide-react";
 import { profile } from "@/data/portfolio";
 
 const PORTRAIT_SRC = "/site-assets/portraits/welcome-portrait.jpg";
@@ -22,68 +22,56 @@ export default function MobileView() {
           className="w-full max-w-[22rem] rounded-[28px] border border-white/10 bg-white/[0.05] p-2.5 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
         >
           <div className="overflow-hidden rounded-[22px] border border-white/8 bg-[#181818]">
-            <div className="relative aspect-[4/4.7]">
-              <Image
-                src={PORTRAIT_SRC}
-                alt={`Portrait of ${profile.name}`}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-top"
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,5,5,0.08)_0%,rgba(5,5,5,0.28)_35%,rgba(5,5,5,0.82)_100%)]" />
+            <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_52%),linear-gradient(180deg,#202020_0%,#181818_100%)] px-4 pb-4 pt-4">
+              <div className="absolute right-[-36px] top-[-28px] h-28 w-28 rounded-full bg-white/8 blur-3xl" />
 
-              <div className="absolute left-3.5 right-3.5 top-3.5 flex items-center justify-between gap-2">
-                <div className="rounded-full border border-white/14 bg-black/20 px-2.5 py-1 text-[10px] font-medium tracking-[0.2em] text-white/80 backdrop-blur-md">
-                  PORTFOLIO
+              <div className="relative flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.18em] text-white/54">
+                <span>Portfolio</span>
+                <span>Desktop Only</span>
+              </div>
+
+              <div className="relative mt-5 flex items-start gap-3">
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-white/5">
+                  <Image
+                    src={PORTRAIT_SRC}
+                    alt={`Portrait of ${profile.name}`}
+                    fill
+                    priority
+                    sizes="64px"
+                    className="object-cover object-top"
+                  />
                 </div>
-                <div className="rounded-full border border-white/14 bg-white/10 px-2.5 py-1 text-[10px] text-white/66 backdrop-blur-md">
-                  Desktop Only
+
+                <div className="min-w-0 pt-1">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/52">
+                    {profile.location}
+                  </p>
+                  <h1 className="mt-2 text-[24px] font-semibold leading-[1.02] text-white">
+                    {profile.name}
+                  </h1>
+                  <p className="mt-1.5 text-[13px] leading-5 text-white/72">
+                    {profile.role}
+                  </p>
                 </div>
               </div>
 
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-white/52">
-                  {profile.location}
-                </p>
-                <h1 className="mt-2 text-[24px] font-semibold leading-[1.02] text-white">
-                  {profile.name}
-                </h1>
-                <p className="mt-1.5 max-w-[14rem] text-[13px] leading-5 text-white/72">
-                  {profile.role}
-                </p>
-              </div>
             </div>
 
-            <div className="px-4 pb-4 pt-4">
-              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-white/42">
-                <LaptopMinimal className="h-3.5 w-3.5" strokeWidth={1.8} />
-                Best On Larger Screens
-              </div>
-
-              <h2 className="mt-3 text-[21px] font-semibold leading-[1.16] text-white">
+            <div className="border-t border-white/8 px-4 pb-4 pt-4">
+              <h2 className="text-[19px] font-semibold leading-[1.18] text-white">
                 Open this portfolio on a laptop or desktop.
               </h2>
 
-              <p className="mt-3 text-[13px] leading-6 text-white/60">
+              <p className="mt-2.5 text-[13px] leading-6 text-white/60">
                 The experience is built as an interactive macOS-style environment and is intentionally designed for larger screens.
               </p>
 
-              <div className="mt-4 rounded-[20px] border border-white/8 bg-white/[0.04] p-3.5">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 rounded-2xl border border-white/10 bg-white/[0.06] p-2">
-                    <Monitor className="h-3.5 w-3.5 text-white/72" strokeWidth={1.8} />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-medium text-white">Recommended access</p>
-                    <p className="mt-1 text-[13px] leading-5 text-white/52">
-                      MacBook, laptop, PC, or any larger display.
-                    </p>
-                  </div>
-                </div>
+              <div className="mt-3.5 flex items-center gap-2 text-[12px] text-white/50">
+                <Monitor className="h-3.5 w-3.5 text-white/62" strokeWidth={1.8} />
+                <span>MacBook, laptop, PC, or any larger display.</span>
               </div>
 
-              <div className="mt-4 grid gap-2.5">
+              <div className="mt-3.5 grid gap-2.5">
                 <a
                   href={`mailto:${profile.email}`}
                   className="flex items-center justify-between rounded-[18px] border border-white/10 bg-white px-4 py-3.5 text-[#121212] transition hover:bg-white/92"
